@@ -1,2 +1,859 @@
-# Rooster Dashboard
-Sales & Customer Onboarding Dashboard powered by Zoho CRM
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rooster Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>🐓</text></svg>" type="image/svg+xml">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      padding: 20px;
+    }
+    .container { max-width: 1600px; margin: 0 auto; }
+    
+    .header {
+      background: #fff;
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .header-subtitle {
+      font-size: 14px;
+      color: #64748b;
+    }
+    
+    .date-range-container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .date-controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .preset-button {
+      padding: 8px 16px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .preset-button:hover {
+      border-color: #cbd5e1;
+      background: #f1f5f9;
+    }
+    .preset-button.active {
+      background: #6366f1;
+      color: #fff;
+      border-color: #6366f1;
+    }
+    .date-input-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .date-input-group input {
+      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .kpi-label {
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .kpi-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #6366f1;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 0;
+      background: #fff;
+      border-radius: 16px;
+      padding: 4px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      width: fit-content;
+    }
+    .tab-button {
+      padding: 12px 24px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #64748b;
+      border-radius: 12px;
+      transition: all 0.2s;
+    }
+    .tab-button:hover {
+      background: #f1f5f9;
+    }
+    .tab-button.active {
+      background: #6366f1;
+      color: #fff;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .chart-container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1e293b;
+    }
+    
+    .funnel-container {
+      display: grid;
+      gap: 12px;
+    }
+    .funnel-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .funnel-label {
+      min-width: 120px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #1e293b;
+    }
+    .funnel-bar-bg {
+      flex: 1;
+      height: 40px;
+      background: linear-gradient(90deg, #6366f1, #06b6d4);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 12px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .rep-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .rep-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .rep-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      margin: 0 auto 12px;
+    }
+    .rep-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #1e293b;
+    }
+    .rep-stat {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .rep-stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #6366f1;
+    }
+    
+    .onboarding-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .onboarding-card {
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      border-radius: 16px;
+      padding: 24px;
+      color: #fff;
+      text-align: center;
+    }
+    .onboarding-card-label {
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+    .onboarding-card-value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      padding: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 600;
+      color: #64748b;
+      background: #f8fafc;
+    }
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .progress-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #06b6d4);
+    }
+    
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // Embedded data
+    const dealsData = [{"name": "Sastho Lanka | ATS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-04-10", "created": "2026-04-03", "owner": "Senanayake", "account": "Sastho Lanka"}, {"name": "I Express Courier Service | HRIS | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-04-08", "created": "2026-04-02", "owner": "Perera", "account": "I Express Courier Service"}, {"name": "Zyner| HRIS | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-04-05", "created": "2026-03-31", "owner": "Perera", "account": "Zyner"}, {"name": "Accel Screening HK Limited | FOWL | Subscprtion", "stage": "Onboarding", "amount": 20, "close": "2026-04-02", "created": "2026-03-31", "owner": "Wathukarage", "account": "Accel Screening HK Limited"}, {"name": "SEBSA World Pvt Ltd | Fowl | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-05-08", "created": "2026-03-31", "owner": "Perera", "account": "SEBSA World Pvt Ltd"}, {"name": "Abacus Technologies (Pvt) Ltd. | ATS | Subscription", "stage": "Closed Won", "amount": 50, "close": "2026-03-31", "created": "2026-03-31", "owner": "Perera", "account": "Abacus Technologies (Pvt) Ltd."}, {"name": "Pro Realtors Pvt Ltd | HRIS | Subscription", "stage": "SQL Lost", "amount": 12, "close": "2026-04-06", "created": "2026-03-30", "owner": "Rathnayake", "account": "Pro Realtors Pvt Ltd"}, {"name": "Voice Lab Academy PVT Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 10, "close": "2026-04-06", "created": "2026-03-30", "owner": "Senanayake", "account": "Voice Lab Academy PVT Ltd"}, {"name": "Coullax Pvt Ltd | ATS | Subscription", "stage": "Onboarding", "amount": 50, "close": "2026-03-24", "created": "2026-03-26", "owner": "Perera", "account": "Coullax Pvt Ltd"}, {"name": "Fairway Hotel Colombo | ATS | Subscription", "stage": "Demo Done", "amount": 75, "close": "2026-04-02", "created": "2026-03-26", "owner": "Senanayake", "account": "Fairway Hotel Colombo"}, {"name": "Gunasekara Filling Station | HRIS | Subscription", "stage": "Demo Done", "amount": 15, "close": "2026-04-02", "created": "2026-03-26", "owner": "Senanayake", "account": "Gunasekara Filling Station"}, {"name": "AFI Corp | HRIS | Subscription", "stage": "Demo Done", "amount": 216, "close": "2026-04-02", "created": "2026-03-26", "owner": "Senanayake", "account": "AFI Corp"}, {"name": "The Serendipity Collection | Fowl | Subscription", "stage": "Demo Done", "amount": 10, "close": "2026-04-03", "created": "2026-03-26", "owner": "Perera", "account": "The Serendipity Collection"}, {"name": "Wijaya Products | HRIS | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-04-03", "created": "2026-03-26", "owner": "Perera", "account": "Wijaya Products"}, {"name": "ATN Services | HRIS | Subscription", "stage": "Demo Done", "amount": 40, "close": "2026-03-31", "created": "2026-03-24", "owner": "Perera", "account": "ATN Services"}, {"name": "Posienta Technologies | HIRS | Subscription", "stage": "Demo Done", "amount": 20, "close": "2026-03-24", "created": "2026-03-24", "owner": "Wathukarage", "account": "Posienta Technologies"}, {"name": "Tiffany and Sienna (Private) Limited | ATS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-04-03", "created": "2026-03-20", "owner": "Senanayake", "account": "Tiffany and Sienna (Private) Limited"}, {"name": "TASH Gem & Jewellery (PVT) Ltd | ATS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-03-23", "created": "2026-03-20", "owner": "Perera", "account": "TASH Gem & Jewellery (PVT) Ltd"}, {"name": "CRI Group | HRIS | Subscription", "stage": "Onboarding", "amount": 14, "close": "2026-03-18", "created": "2026-03-20", "owner": "Perera", "account": "CRI Group"}, {"name": "The Brand Agency | HRIS | Subscription", "stage": "Onboarding", "amount": 20, "close": "2026-03-26", "created": "2026-03-19", "owner": "Senanayake", "account": "The Brand Agency"}, {"name": "Flyhire International Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 12, "close": "2026-03-26", "created": "2026-03-19", "owner": "Senanayake", "account": "Flyhire International Pvt Ltd"}, {"name": "Brown Grow | HRIS | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-03-27", "created": "2026-03-19", "owner": "Perera", "account": "Brown Grow"}, {"name": "Modicon Automative | HRIS | Subscription", "stage": "Demo Done", "amount": 40, "close": "2026-03-25", "created": "2026-03-18", "owner": "Senanayake", "account": "Modicon Automative"}, {"name": "Sterling BPO Solutions | fowl | Subscription", "stage": "Onboarding", "amount": 20, "close": "2026-03-26", "created": "2026-03-18", "owner": "Perera", "account": "Sterling BPO Solutions"}, {"name": "Upali Ads Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 65, "close": "2026-03-18", "created": "2026-03-18", "owner": "Wathukarage", "account": "Upali Ads Pvt Ltd"}, {"name": "Omobio Pvt Ltd | FOWL | Subscription", "stage": "Demo Done", "amount": 300, "close": "2026-03-26", "created": "2026-03-18", "owner": "Wathukarage", "account": "Omobio Pvt Ltd"}, {"name": "Dialog Business Services | HRIS | Subscription", "stage": "Demo Done", "amount": 180, "close": "2026-03-18", "created": "2026-03-18", "owner": "Wathukarage", "account": "Dialog Business Services"}, {"name": "OutDesk BPO Services (Pvt) Ltd | ATS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-03-24", "created": "2026-03-17", "owner": "Senanayake", "account": "OutDesk BPO Services (Pvt) Ltd"}, {"name": "Malay Restaurant Dehiwala | HRIS | Subscription", "stage": "Onboarding", "amount": 90, "close": "2026-03-19", "created": "2026-03-17", "owner": "Perera", "account": "Malay Restaurant Dehiwala"}, {"name": "Exel BPO | ATS | Subscription", "stage": "Onboarding", "amount": 50, "close": "2026-03-24", "created": "2026-03-16", "owner": "Senanayake", "account": "Exel BPO"}, {"name": "Packsole Lanka Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 40, "close": "2026-03-23", "created": "2026-03-16", "owner": "Senanayake", "account": "Packsole Lanka Pvt Ltd"}, {"name": "DocLink | HRIS | Subscription", "stage": "SQL Lost", "amount": 20, "close": "2026-03-20", "created": "2026-03-13", "owner": "Senanayake", "account": "DocLink"}, {"name": "inet Solutions Pvvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-03-16", "created": "2026-03-13", "owner": "Perera", "account": "inet Solutions Pvvt Ltd"}, {"name": "Nano Tech Heavy Engineering | HRIS | Subscription", "stage": "Demo Done", "amount": 20, "close": "2026-03-20", "created": "2026-03-13", "owner": "Senanayake", "account": "Nano Tech Heavy Engineering"}, {"name": "Cleanline Linen Management pvt ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 120, "close": "2026-04-07", "created": "2026-03-13", "owner": "Perera", "account": "Cleanline Linen Management pvt ltd"}, {"name": "Wickrama Holdings | HRIS | Subscription", "stage": "Demo Done", "amount": 25, "close": "2026-03-20", "created": "2026-03-13", "owner": "Senanayake", "account": "Wickrama Holdings"}, {"name": "Harpos Pvt LTD | HRIS | Subscription (Paid annually in 3 instalments)", "stage": "Onboarding", "amount": 116, "close": "2026-03-12", "created": "2026-03-13", "owner": "Perera", "account": "Harpos Pvt LTD"}, {"name": "Viloci Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 30, "close": "2026-03-19", "created": "2026-03-12", "owner": "Senanayake", "account": "Viloci Pvt Ltd"}, {"name": "Divimaga Holdings | HRIS | Subscription", "stage": "Demo Done", "amount": 45, "close": "2026-03-19", "created": "2026-03-12", "owner": "Senanayake", "account": "Divimaga Holdings"}, {"name": "Chathurangi Harshini - Payroll Company | HRIS | Subscription", "stage": "Onboarding", "amount": 10, "close": "2026-04-22", "created": "2026-03-12", "owner": "Senanayake", "account": "Chathurangi Harshini - Payroll Company"}, {"name": "Munasco Capital Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-03-12", "created": "2026-03-12", "owner": "Wathukarage", "account": "Munasco Capital Pvt Ltd"}, {"name": "EBCON Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 30, "close": "2026-03-19", "created": "2026-03-12", "owner": "Senanayake", "account": "EBCON Pvt Ltd"}, {"name": "Classic Venture Security Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-03-17", "created": "2026-03-12", "owner": "Perera", "account": "Classic Venture Security Pvt Ltd"}, {"name": "ESOL College International | ATS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-03-19", "created": "2026-03-12", "owner": "Senanayake", "account": "ESOL College International"}, {"name": "Gamage Man Power | Hris | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-03-12", "created": "2026-03-11", "owner": "Perera", "account": "Gamage Man Power"}, {"name": "Artiflora Studio | HRIS | Subscription", "stage": "Demo Done", "amount": 15, "close": "2026-03-13", "created": "2026-03-11", "owner": "Senanayake", "account": "Artiflora Studio"}, {"name": "KSC Supermarket | HRIS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-03-11", "created": "2026-03-10", "owner": "Perera", "account": "KSC Supermarket"}, {"name": "Circle of Lines | HRIS | Subscription", "stage": "Demo Done", "amount": 10, "close": "2026-03-12", "created": "2026-03-10", "owner": "Senanayake", "account": "Circle of Lines"}, {"name": "Cenzios Pvt Ltd | HRIS | Subscription", "stage": "SQL Lost", "amount": 15, "close": "2026-03-17", "created": "2026-03-10", "owner": "Senanayake", "account": "Cenzios Pvt Ltd"}, {"name": "Capital Employment Consultant | HRIS | Subsciption", "stage": "Onboarding", "amount": 20, "close": "2026-03-11", "created": "2026-03-10", "owner": "Perera", "account": "Capital Employment Consultant"}, {"name": "Life Care Diagnostic Laboratories | HRIS | Subscription", "stage": "Onboarding", "amount": 8, "close": "2026-03-12", "created": "2026-03-10", "owner": "Senanayake", "account": "Life Care Diagnostic Laboratories"}, {"name": "Three Sinha Industries | ATS | Subscription", "stage": "Onboarding", "amount": 50, "close": "2026-03-10", "created": "2026-03-10", "owner": "Senanayake", "account": "Three Sinha Industries"}, {"name": "Henan Frozen Food Pvt Ltd | HRIS |. Subscription", "stage": "Onboarding", "amount": 16, "close": "2026-03-09", "created": "2026-03-09", "owner": "Perera", "account": "Henan Frozen Food Pvt Ltd"}, {"name": "Best Paper Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 24, "close": "2026-03-13", "created": "2026-03-09", "owner": "Senanayake", "account": "Best Paper Pvt Ltd"}, {"name": "Manpower Sri Lanka | Fowl | Subscription", "stage": "Onboarding", "amount": 50, "close": "2026-03-07", "created": "2026-03-07", "owner": "Perera", "account": "Manpower Sri Lanka"}, {"name": "Manpower Sri Lanka | HRIS | Subscription", "stage": "Onboarding", "amount": 20, "close": "2026-03-07", "created": "2026-03-07", "owner": "Perera", "account": "Manpower Sri Lanka"}, {"name": "Bajaj Motor House | HRIS | Subscription", "stage": "Demo Done", "amount": 37, "close": "2026-03-10", "created": "2026-03-06", "owner": "Perera", "account": "Bajaj Motor House"}, {"name": "Data Management Systems Pvt Ltd | ATS | Subscription", "stage": "Onboarding", "amount": 50, "close": "2026-03-13", "created": "2026-03-06", "owner": "Senanayake", "account": "Data Management Systems Pvt Ltd"}, {"name": "INDI RMC Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 18, "close": "2026-04-03", "created": "2026-03-06", "owner": "Senanayake", "account": "INDI RMC Pvt Ltd"}, {"name": "OX Global PVT Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 15, "close": "2026-03-06", "created": "2026-03-06", "owner": "Senanayake", "account": "OX Global PVT Ltd"}, {"name": "Balanita pvt Ltd | ATS | Subscription", "stage": "SQL Lost", "amount": 50, "close": "2026-03-13", "created": "2026-03-06", "owner": "Senanayake", "account": "Balanita pvt Ltd"}, {"name": "Singer | ATS | Subscription", "stage": "Demo Done", "amount": 75, "close": "2026-03-06", "created": "2026-03-06", "owner": "Wathukarage", "account": "Singer"}, {"name": "Onsecure Security Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 75, "close": "2026-03-12", "created": "2026-03-05", "owner": "Perera", "account": "Onsecure Security Pvt Ltd"}, {"name": "Anim8 Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 145, "close": "2026-04-03", "created": "2026-03-04", "owner": "Perera", "account": "Anim8 Pvt Ltd"}, {"name": "Skipod Manufacture Pvt Ltd | HRIS | Subscription", "stage": "Closed Won", "amount": 20, "close": "2026-03-03", "created": "2026-03-03", "owner": "Perera", "account": "Skipod Manufacture Pvt Ltd"}, {"name": "John Keells Properties | ATS | Subscription", "stage": "SQL Lost", "amount": 75, "close": "2026-03-03", "created": "2026-03-03", "owner": "Wathukarage", "account": "John Keells Properties"}, {"name": "Corznet pvt ltd | ATS | Subscription", "stage": "Demo Done", "amount": 75, "close": "2026-03-03", "created": "2026-03-03", "owner": "Wathukarage", "account": "Corznet pvt ltd"}, {"name": "Sprint Technologies Pty Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 10, "close": "2026-03-13", "created": "2026-03-03", "owner": "Wathukarage", "account": "Sprint Technologies Pty Ltd"}, {"name": "Asia Assets Finance | HRIS | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-03-31", "created": "2026-03-03", "owner": "Perera", "account": "Asia Assets Finance"}, {"name": "Leisure Land | ATS | Subscription", "stage": "Closed Won", "amount": 50, "close": "2026-03-03", "created": "2026-03-03", "owner": "Perera", "account": "Leisure Land"}, {"name": "Ceylon Green Life Plantation | HRIS| Subscription", "stage": "Onboarding", "amount": 2333, "close": "2026-03-26", "created": "2026-03-03", "owner": "Perera", "account": "Ceylon Green Life Plantation"}, {"name": "Cloud Telecom | Hris | Subscription", "stage": "Demo Done", "amount": 55, "close": "2026-03-05", "created": "2026-02-27", "owner": "Perera", "account": "Cloud Telecom"}, {"name": "Negombo South International School | Hris | subscription", "stage": "Demo Done", "amount": 80, "close": "2026-03-06", "created": "2026-02-27", "owner": "Perera", "account": "Negombo South International School"}, {"name": "MPCS Pallepola | Hris | subscription", "stage": "SQL Lost", "amount": 100, "close": "2026-03-05", "created": "2026-02-27", "owner": "Wathukarage", "account": "MPCS Pallepola"}, {"name": "CLC Workfare Pvt Ltd | Hris| Subscription", "stage": "SQL Lost", "amount": 50, "close": "2026-03-05", "created": "2026-02-27", "owner": "Wathukarage", "account": "CLC Workfare Pvt Ltd"}, {"name": "NPS Packaging Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-03-06", "created": "2026-02-27", "owner": "Wathukarage", "account": "NPS Packaging Pvt Ltd"}, {"name": "Asian Grameen Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 200, "close": "2026-02-26", "created": "2026-02-25", "owner": "Wathukarage", "account": "Asian Grameen Pvt Ltd"}, {"name": "Onvo Clothing Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 120, "close": "2026-02-26", "created": "2026-02-25", "owner": "Perera", "account": "Onvo Clothing Pvt Ltd"}, {"name": "Skipod Manufacture Pvt Ltd | ATS | Subscription", "stage": "Closed Won", "amount": 50, "close": "2026-02-24", "created": "2026-02-25", "owner": "Perera", "account": "Skipod Manufacture Pvt Ltd"}, {"name": "Asriel Marketing Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-02-25", "created": "2026-02-24", "owner": "Perera", "account": "Asriel Marketing Pvt Ltd"}, {"name": "Indra Immigration | ATS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-02-24", "created": "2026-02-24", "owner": "Wathukarage", "account": "Indra Immigration"}, {"name": "Me Colombo | HRIS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-02-25", "created": "2026-02-24", "owner": "Wathukarage", "account": "Me Colombo"}, {"name": "Janaka Printers | HRIS | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-02-23", "created": "2026-02-23", "owner": "Wathukarage", "account": "Janaka Printers"}, {"name": "ADC Herbal Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 150, "close": "2026-02-24", "created": "2026-02-23", "owner": "Wathukarage", "account": "ADC Herbal Pvt Ltd"}, {"name": "Mosh Holdings Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 80, "close": "2026-02-23", "created": "2026-02-23", "owner": "Rathnayake", "account": "Mosh Holdings Pvt Ltd"}, {"name": "Delta Spike Pvt Ltd | HRIS | Subscription", "stage": "SQL Lost", "amount": 30, "close": "2026-02-23", "created": "2026-02-23", "owner": "Wathukarage", "account": "Delta Spike Pvt Ltd"}, {"name": "Nafso | HRIS | Subscription", "stage": "Demo Done", "amount": 60, "close": "2026-02-20", "created": "2026-02-20", "owner": "Wathukarage", "account": "Nafso"}, {"name": "Xcode Digital Labs | ATS | Subscription", "stage": "Demo Done", "amount": 75, "close": "2026-02-20", "created": "2026-02-20", "owner": "Wathukarage", "account": "Xcode Digital Labs"}, {"name": "WeBuild Studio |Ats| Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-02-23", "created": "2026-02-20", "owner": "Wathukarage", "account": "WeBuild Studio"}, {"name": "Nvision Pvt Ltd| ATS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-02-23", "created": "2026-02-20", "owner": "Wathukarage", "account": "Nvision Pvt Ltd"}, {"name": "Richie Dairies Pvt Ltd | HRIS | Subscription", "stage": "SQL Lost", "amount": 100, "close": "2026-02-23", "created": "2026-02-20", "owner": "Wathukarage", "account": "Richie Dairies Pvt Ltd"}, {"name": "Glo hotels | ATS | Subscription", "stage": "Closed Won", "amount": 16, "close": "2026-02-19", "created": "2026-02-19", "owner": "Perera", "account": "Glo hotels"}, {"name": "Isuru Wine Stores | HRIS | Subscription", "stage": "Demo Done", "amount": 50, "close": "2026-02-19", "created": "2026-02-19", "owner": "Wathukarage", "account": "Isuru Wine Stores"}, {"name": "HNG Constructions| HRIS | Subscription", "stage": "SQL Lost", "amount": 40, "close": "2026-02-19", "created": "2026-02-19", "owner": "Wathukarage", "account": "HNG Constructions"}, {"name": "Riyon International (Pvt) Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 41, "close": "2026-02-20", "created": "2026-02-19", "owner": "Perera", "account": "Riyon International (Pvt) Ltd"}, {"name": "Engage Finance  | HRIS | Subscription", "stage": "Demo Done", "amount": 40, "close": "2026-02-19", "created": "2026-02-18", "owner": "Perera", "account": "Engage Finance Solutions"}, {"name": "MuveOne European Movers | ATS | Subscription", "stage": "SQL Lost", "amount": 75, "close": "2026-02-23", "created": "2026-02-18", "owner": "Wathukarage", "account": "MuveOne European Movers"}, {"name": "The big picture studios | HRIS | Subscription", "stage": "Onboarding", "amount": 10, "close": "2026-02-17", "created": "2026-02-17", "owner": "Perera", "account": "The big picture studios"}, {"name": "Exclusive Lines | HRIS | Subscription", "stage": "Demo Done", "amount": 145, "close": "2026-02-23", "created": "2026-02-17", "owner": "Perera", "account": "Exclusive Lines"}, {"name": "Seynar | HRIS | Subscription", "stage": "Closed Won", "amount": 10, "close": "2026-02-16", "created": "2026-02-16", "owner": "Perera", "account": "Seynar"}, {"name": "Pandanus Beach Resort & Spa | HRIS | Subscription", "stage": "SQL Lost", "amount": 160, "close": "2026-02-13", "created": "2026-02-13", "owner": "Wathukarage", "account": "Pandanus Beach Resort & Spa"}, {"name": "Hatch works | HRIS | Subscription", "stage": "Demo Done", "amount": 35, "close": "2026-02-13", "created": "2026-02-13", "owner": "Wathukarage", "account": "Hatch works"}, {"name": "Tharindu Farm | HRIS | Subscription", "stage": "SQL Lost", "amount": 100, "close": "2026-02-12", "created": "2026-02-10", "owner": "Perera", "account": "Tharindu Farm"}, {"name": "Melwire Rolling Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 80, "close": "2026-03-31", "created": "2026-02-10", "owner": "Wathukarage", "account": "Melwire Rolling Pvt Ltd"}, {"name": "Kognizant Global Solutions OPC | ATS | HRIS", "stage": "Closed Won", "amount": 50, "close": "2026-02-09", "created": "2026-02-09", "owner": "Perera", "account": "Kognizant Global Solutions OPC"}, {"name": "Sole Troll | HRIS Subscription", "stage": "Onboarding", "amount": 8, "close": "2026-02-06", "created": "2026-02-06", "owner": "Wathukarage", "account": "Sole Troll"}, {"name": "Sole Troll | ATS | Subscription", "stage": "Onboarding", "amount": 50, "close": "2026-02-06", "created": "2026-02-06", "owner": "Wathukarage", "account": "Sole Troll"}, {"name": "PLAN B COWORKING (PVT) LTD | HRIS | Subscription", "stage": "Onboarding", "amount": 30, "close": "2026-02-16", "created": "2026-02-06", "owner": "Perera", "account": "PLAN B COWORKING (PVT) LTD"}, {"name": "Advice Lab | HRIS | Subscription", "stage": "Demo Done", "amount": 150, "close": "2026-02-05", "created": "2026-02-05", "owner": "Perera", "account": "Advice Lab"}, {"name": "JFS Holdings Limited | HRIS | Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-02-13", "created": "2026-02-05", "owner": "Perera", "account": "JFS Holdings Limited"}, {"name": "Piyadasa & Sons | HRIS | Subscription", "stage": "SQL Lost", "amount": 50, "close": "2026-02-02", "created": "2026-02-02", "owner": "Perera", "account": "Piyadasa & Sons"}, {"name": "Kingswood British College | HRIS| Subscription", "stage": "Demo Done", "amount": 100, "close": "2026-01-30", "created": "2026-01-30", "owner": "Perera", "account": "Kingswood British College"}, {"name": "Semini Motors|hris | Subscription", "stage": "Onboarding", "amount": 150, "close": "2026-02-27", "created": "2026-01-29", "owner": "Perera", "account": "Semini Motors"}, {"name": "Ceylon Batik | HRIS | Subscription", "stage": "Onboarding", "amount": 35, "close": "2026-02-05", "created": "2026-01-29", "owner": "Perera", "account": "Ceylon Batik"}, {"name": "Greenful Solutions Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 10, "close": "2026-01-29", "created": "2026-01-29", "owner": "Perera", "account": "Greenful Solutions Pvt Ltd"}, {"name": "Provident Capital | The Loft | ATS | Subscription", "stage": "Onboarding", "amount": 50, "close": "2026-01-28", "created": "2026-01-28", "owner": "Wathukarage", "account": "Provident Capital | THE LOFT"}, {"name": "BPO TEAM SERVICES PVT LTD | HRIS | Subscription", "stage": "Onboarding", "amount": 10, "close": "2026-01-28", "created": "2026-01-28", "owner": "Perera", "account": "BPO TEAM SERVICES PVT LTD"}, {"name": "Aero Travels Group Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 44, "close": "2026-02-10", "created": "2026-01-28", "owner": "Wathukarage", "account": "Aero Travels Group Pvt Ltd"}, {"name": "KJE | HRIS | Subscription", "stage": "Onboarding", "amount": 120, "close": "2026-02-09", "created": "2026-01-27", "owner": "Perera", "account": "KJE"}, {"name": "Sigiriya Kingdom Resort | HRIS | Subscription", "stage": "SQL Lost", "amount": 55, "close": "2026-01-27", "created": "2026-01-27", "owner": "Wathukarage", "account": "Sigiriya Kingdom Resort"}, {"name": "New Puttalam Hospital | HRIS | Subscription", "stage": "SQL Lost", "amount": 35, "close": "2026-01-27", "created": "2026-01-27", "owner": "Wathukarage", "account": "New Puttalam Hospital"}, {"name": "Bridgy INC | ATS | Subscription", "stage": "SQL Lost", "amount": 75, "close": "2026-01-26", "created": "2026-01-26", "owner": "Wathukarage", "account": "Bridgy INC"}, {"name": "Cormarant Beach Club | HRIS | Subscription", "stage": "SQL Lost", "amount": 20, "close": "2026-01-27", "created": "2026-01-26", "owner": "Perera", "account": "Cormarant Beach Club"}, {"name": "Kandy Central Hospital | HRIS | Subscription", "stage": "Onboarding", "amount": 10, "close": "2026-01-26", "created": "2026-01-26", "owner": "Perera", "account": "Kandy Central Hospital"}, {"name": "Echt social | ATS | Subscription", "stage": "Onboarding", "amount": 50, "close": "2026-02-05", "created": "2026-01-23", "owner": "Wathukarage", "account": "Echt social"}, {"name": "BotCalm | HRIS | Subscription", "stage": "Demo Done", "amount": 80, "close": "2026-01-22", "created": "2026-01-22", "owner": "Wathukarage", "account": "BotCalm"}, {"name": "Growell Lanka Pvt Ltd | HRIS | sUBSCRIPTION", "stage": "SQL Lost", "amount": 90, "close": "2026-01-22", "created": "2026-01-22", "owner": "Perera", "account": "Growell Lanka Pvt Ltd"}, {"name": "Magical isle Holidays |HRIS | Software", "stage": "Onboarding", "amount": 25, "close": "2026-01-26", "created": "2026-01-22", "owner": "Perera", "account": "Magical isle Holidays"}, {"name": "Benchmark Staffing Solutions | HRIS | Subscription", "stage": "Closed Won", "amount": 10, "close": "2026-01-22", "created": "2026-01-22", "owner": "Perera", "account": "Benchmark Staffing Solutions"}, {"name": "Sarath Caterers | HRIS | Subscription", "stage": "Onboarding", "amount": 50, "close": "2026-01-21", "created": "2026-01-21", "owner": "Perera", "account": "Sarath Caterers"}, {"name": "Sam Bakery | HRIS | Subscription", "stage": "SQL Lost", "amount": 20, "close": "2026-01-22", "created": "2026-01-20", "owner": "Perera", "account": "Sam Bakery"}, {"name": "Hanwei Gajashakthi Security Service Pvt Ltd | hris | Subscription", "stage": "SQL Lost", "amount": 50, "close": "2026-01-29", "created": "2026-01-20", "owner": "Perera", "account": "Hanwei Gajashakthi Security Service Pvt Ltd"}, {"name": "GST Organic Cinnamon Ceylon Pvt Ltd | HRIS | Subscription", "stage": "Closed Lost", "amount": 17, "close": "2026-01-20", "created": "2026-01-20", "owner": "Wathukarage", "account": "GST Organic Cinnamon Ceylon Pvt Ltd"}, {"name": "Premachandra Medi House | HRIS | Subscription", "stage": "SQL Lost", "amount": 20, "close": "2026-01-30", "created": "2026-01-20", "owner": "Perera", "account": "Premachandra Medi House"}, {"name": "Nano Celluar Pvt Ltd | HRIS | Subscription", "stage": "SQL Lost", "amount": 15, "close": "2026-01-21", "created": "2026-01-20", "owner": "Perera", "account": "Nano Celluar Pvt Ltd"}, {"name": "Hotel East Lagoon \u2013 Batticaloa | HRIS | Subscription", "stage": "Onboarding", "amount": 60, "close": "2026-02-13", "created": "2026-01-20", "owner": "Wathukarage", "account": "Hotel East Lagoon \u2013 Batticaloa"}, {"name": "A&M Food Company (Pvt) Ltd | HRIS | Subscription", "stage": "Closed Won", "amount": 25, "close": "2026-01-20", "created": "2026-01-20", "owner": "Wathukarage", "account": "A&M Food Company (Pvt) Ltd"}, {"name": "Esess Hospitals | HRIS | Subscription", "stage": "SQL Lost", "amount": 25, "close": "2026-01-20", "created": "2026-01-20", "owner": "Wathukarage", "account": "Esess Hospitals"}, {"name": "Spark Shift Pvt Ltd | HRIS | Subscriptions", "stage": "SQL Lost", "amount": 10, "close": "2026-01-17", "created": "2026-01-17", "owner": "Wathukarage", "account": "Spark Shift Pvt Ltd"}, {"name": "Berner Lanka Pvt Ltd | HRIS | Subscriptions", "stage": "Demo Done", "amount": 65, "close": "2026-01-17", "created": "2026-01-17", "owner": "Wathukarage", "account": "Berner Lanka Pvt Ltd"}, {"name": "Silver Shield Security | HRIS | Subscription", "stage": "SQL Lost", "amount": 200, "close": "2026-01-16", "created": "2026-01-16", "owner": "Wathukarage", "account": "Silver Shield Security"}, {"name": "Adam Carbons Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 96, "close": "2026-01-19", "created": "2026-01-16", "owner": "Perera", "account": "Adam Carbons Pvt Ltd"}, {"name": "Needs Lanka Plantation & Food Product Pvt Ltd | HRIS | Subscription", "stage": "SQL Lost", "amount": 15, "close": "2026-01-16", "created": "2026-01-16", "owner": "Wathukarage", "account": "Needs Lanka Plantation & Food Product Pvt Ltd"}, {"name": "Merk Colombo Pvt Ltd |HRIS | Subscription", "stage": "Demo Done", "amount": 35, "close": "2026-01-19", "created": "2026-01-16", "owner": "Perera", "account": "Merk Colombo Pvt Ltd"}, {"name": "Maa Resorts & Spa Pvt Ltd | HRIS subscription", "stage": "SQL Lost", "amount": 10, "close": "2026-01-19", "created": "2026-01-16", "owner": "Perera", "account": "Maa Resorts & Spa Pvt Ltd"}, {"name": "Dinesha Embroidery Pvt Ltd | HRIS | Subscription", "stage": "SQL Lost", "amount": 25, "close": "2026-01-29", "created": "2026-01-15", "owner": "Wathukarage", "account": "Dinesha Embroidery Pvt Ltd"}, {"name": "Incubate Labs Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 130, "close": "2026-01-14", "created": "2026-01-14", "owner": "Wathukarage", "account": "Incubate Labs Pvt Ltd"}, {"name": "Bravo Lanka Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 15, "close": "2026-01-14", "created": "2026-01-13", "owner": "Wathukarage", "account": "Bravo Lanka Pvt Ltd"}, {"name": "New Lanka Pharmacy Pvt Ltd | HRIS | Subscription", "stage": "Not Responding", "amount": 13, "close": "2026-01-15", "created": "2026-01-13", "owner": "Perera", "account": "New Lanka Pharmacy Pvt Ltd"}, {"name": "Boostnet Energy", "stage": "Onboarding", "amount": 9, "close": "2026-01-13", "created": "2026-01-13", "owner": "Wathukarage", "account": "Boostnet Energy"}, {"name": "Gmart Online | HRIS | Subscription", "stage": "Onboarding", "amount": 10, "close": "2026-01-12", "created": "2026-01-12", "owner": "Perera", "account": "Gmart Online"}, {"name": "Uniworld Teas Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 60, "close": "2026-01-12", "created": "2026-01-12", "owner": "Wathukarage", "account": "Uniworld Teas Pvt Ltd"}, {"name": "CASA BPO| ATS | Subscription", "stage": "SQL Lost", "amount": 75, "close": "2026-01-12", "created": "2026-01-09", "owner": "Perera", "account": "CASA BPO SDN>BHD"}, {"name": "Somizu.lk Pvt Ltd | HRIS | Subscription", "stage": "SQL Lost", "amount": 15, "close": "2026-01-09", "created": "2026-01-09", "owner": "Wathukarage", "account": "Somizu.lk Pvt Ltd"}, {"name": "Abc pharma Services Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 123, "close": "2026-02-16", "created": "2026-01-09", "owner": "Wathukarage", "account": "Abc pharma Services Pvt Ltd"}, {"name": "ARA Holdings | Hris | Subscription", "stage": "Onboarding", "amount": 50, "close": "2026-01-08", "created": "2026-01-09", "owner": "Perera", "account": "ARA Holdings"}, {"name": "Rope Digital | HRIS | Subscription", "stage": "SQL Lost", "amount": 10, "close": "2026-01-09", "created": "2026-01-08", "owner": "Wathukarage", "account": "Rope Digital"}, {"name": "Athgiri Hotels Pvt Ltd | HRIS | Subscription", "stage": "Not Responding", "amount": 95, "close": "2026-01-12", "created": "2026-01-08", "owner": "Perera", "account": "Athgiri Hotels Pvt Ltd"}, {"name": "Green Space Lanka Pvt Ltd | HRIS | Subscription", "stage": "SQL Lost", "amount": 35, "close": "2026-01-07", "created": "2026-01-07", "owner": "Wathukarage", "account": "Green Space Lanka Pvt Ltd"}, {"name": "Oshiru Motors | HRIS | Subscription", "stage": "SQL Lost", "amount": 15, "close": "2026-01-08", "created": "2026-01-07", "owner": "Wathukarage", "account": "Oshiru Motors"}, {"name": "Sansa Technologies | ATS | Subscription", "stage": "Closed Won", "amount": 50, "close": "2026-01-07", "created": "2026-01-07", "owner": "Perera", "account": "Sansa Technologies"}, {"name": "Design Studio | HRIS | Subscription", "stage": "Demo Done", "amount": 2000, "close": "2026-01-31", "created": "2026-01-07", "owner": "Wathukarage", "account": "Design Studio"}, {"name": "Swell Shacks | HRIS | Subscription", "stage": "Not Responding", "amount": 10, "close": "2026-01-09", "created": "2026-01-07", "owner": "Perera", "account": "Swell Shacks"}, {"name": "Digital Marketing Strategies | HRIS | Subscription", "stage": "Onboarding", "amount": 10, "close": "2026-01-09", "created": "2026-01-07", "owner": "Perera", "account": "Digital Marketing Strategies"}, {"name": "Webtezza Pvt Ltd  | HRIS | Subscription", "stage": "Not Responding", "amount": 20, "close": "2026-01-12", "created": "2026-01-06", "owner": "Perera", "account": "Webtezza Pvt Ltd"}, {"name": "Veeraa Pvt Ltd | HRIS | Subscription", "stage": "Not Responding", "amount": 20, "close": "2026-01-13", "created": "2026-01-06", "owner": "Perera", "account": "Veeraa Pvt Ltd"}, {"name": "Fort Hotels Group | ATS | Subscription", "stage": "Closed Won", "amount": 60, "close": "2026-01-02", "created": "2026-01-02", "owner": "Wathukarage", "account": "Fort Hotels Group"}, {"name": "Creative Software | ATS | Annual Subscription", "stage": "Onboarding", "amount": 40, "close": "2026-01-02", "created": "2026-01-02", "owner": "Perera", "account": "Creative Software"}, {"name": "Fika Deli Colombo | HRIS | Subscription", "stage": "Closed Won", "amount": 10, "close": "2025-12-31", "created": "2025-12-31", "owner": "Wathukarage", "account": "Fika Deli Colombo"}, {"name": "Northern Food Company | HRIS | Annual Subscription", "stage": "Onboarding", "amount": 13, "close": "2025-12-30", "created": "2025-12-29", "owner": "Perera", "account": "Nothern Food Company"}, {"name": "Mustard Gourmet (PVT) Ltd | HRIS | Annual Subscription", "stage": "Onboarding", "amount": 19.5, "close": "2025-12-29", "created": "2025-12-29", "owner": "Wathukarage", "account": "Mustard Gourmet (PVT) Ltd"}, {"name": "Peace Makers Foundation | HRIS | Subscription", "stage": "Not Responding", "amount": 15, "close": "2025-12-31", "created": "2025-12-29", "owner": "Perera", "account": "Peace Makers Foundation"}, {"name": "Real Freak Company | HRIS | Subscription", "stage": "Not Responding", "amount": 35, "close": "2025-12-31", "created": "2025-12-29", "owner": "Perera", "account": "Real Freak Company"}, {"name": "Rapid Care Laborites | HRIS | Subscription", "stage": "SQL Lost", "amount": 10, "close": "2025-12-29", "created": "2025-12-29", "owner": "Perera", "account": "Rapid Care Laborites"}, {"name": "Marqo Industries | HRIS | Subscription", "stage": "Onboarding", "amount": 30, "close": "2025-12-23", "created": "2025-12-23", "owner": "Perera", "account": "Marqo Industries"}, {"name": "High Security Bouncer Service | Hris | Subscription", "stage": "SQL Lost", "amount": 60, "close": "2025-12-25", "created": "2025-12-22", "owner": "Perera", "account": "High Security Bouncer Service"}, {"name": "Seynar | Hire plus | Subscription", "stage": "Closed Won", "amount": 50, "close": "2026-02-16", "created": "2025-12-22", "owner": "Perera", "account": "Seynar"}, {"name": "Studio Lakdam Pvt Ltd X Rooster | HRIS", "stage": "Not Responding", "amount": 20, "close": "2025-12-31", "created": "2025-12-22", "owner": "Perera", "account": "Studio Lakdam Pvt Ltd"}, {"name": "International Export Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 190, "close": "2025-12-22", "created": "2025-12-22", "owner": "Perera", "account": "International Export Pvt Ltd"}, {"name": "Homes Universal | HIRS | Subscription", "stage": "SQL Lost", "amount": 150, "close": "2025-12-22", "created": "2025-12-22", "owner": "Wathukarage", "account": "Homes Universal"}, {"name": "Yasith Creations Pvt Ltd | HRIS | Subscription", "stage": "SQL Lost", "amount": 45, "close": "2025-12-19", "created": "2025-12-19", "owner": "Wathukarage", "account": "Yasith Creations Pvt Ltd"}, {"name": "Smart Care Pvt Ltd | HRIS | Subscription", "stage": "SQL Lost", "amount": 0, "close": "2025-12-31", "created": "2025-12-18", "owner": "Rathnayake", "account": "Smart Care Pvt Ltd"}, {"name": "SilkeeSolutions| HRIS & ATS| Subscription", "stage": "Closed Won", "amount": 70, "close": "2025-12-17", "created": "2025-12-17", "owner": "Perera", "account": "SilkeeSolutions"}, {"name": "Abhiman Investment Pvt Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 120, "close": "2026-02-11", "created": "2025-12-17", "owner": "Perera", "account": "Abhiman Investment Pvt Ltd"}, {"name": "Kala Group | HIRS | Subscription", "stage": "Onboarding", "amount": 35, "close": "2026-03-16", "created": "2025-12-17", "owner": "Wathukarage", "account": "Frankils Developments Pvt Ltd (Kala Holdings)"}, {"name": "Rocky Holdings Pvt Ltd | HRIS | Subscription", "stage": "Closed Won", "amount": 16, "close": "2025-12-18", "created": "2025-12-17", "owner": "Perera", "account": "Rocky Holdings Pvt Ltd"}, {"name": "IFGBPO Pvt Ltd | HRIS | Subscpiton", "stage": "Demo Done", "amount": 50, "close": "2025-12-17", "created": "2025-12-17", "owner": "Wathukarage", "account": "IFGBPO Pvt Ltd"}, {"name": "Streamline HR SL (Pvt) Ltd | HRIS | Subscription", "stage": "Closed Won", "amount": 10, "close": "2025-12-17", "created": "2025-12-17", "owner": "Perera", "account": "Streamline HR SL (Pvt) Ltd"}, {"name": "Universal labels | HRIS | Subscription", "stage": "Closed Lost", "amount": 120, "close": "2025-12-17", "created": "2025-12-17", "owner": "Wathukarage", "account": "Universal labels"}, {"name": "River View Villas (Pvt) Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 26, "close": "2025-12-16", "created": "2025-12-16", "owner": "Perera", "account": "River View Villas (Pvt) Ltd"}, {"name": "Atom Technologies (Pvt) Ltd | HRIS | Subscription", "stage": "Onboarding", "amount": 32, "close": "2025-12-15", "created": "2025-12-15", "owner": "Perera", "account": "Atom Technologies (Pvt) Ltd"}, {"name": "ProActiveChain PVT Ltd | HRIS | Subscription", "stage": "Closed Won", "amount": 17, "close": "2025-12-31", "created": "2025-12-15", "owner": "Wathukarage", "account": "ProActiveChain PVT Ltd"}, {"name": "Dinara Clothing Pvt Ltd | HRIS | subscription", "stage": "Not Responding", "amount": 50, "close": "2025-12-31", "created": "2025-12-15", "owner": "Perera", "account": "Dinara Clothing Pvt Ltd"}, {"name": "Kasun Printers | HRIS | Subscription", "stage": "SQL Lost", "amount": 20, "close": "2025-11-20", "created": "2025-12-15", "owner": "Perera", "account": "Kasun Printers"}, {"name": "Green Park Car Care | HRIS | Subscription", "stage": "SQL Lost", "amount": 72, "close": "2025-12-13", "created": "2025-12-13", "owner": "Wathukarage", "account": "Green Park Car Care"}, {"name": "Playdium | HRIS | Subscription", "stage": "Onboarding", "amount": 20, "close": "2025-12-12", "created": "2025-12-12", "owner": "Wathukarage", "account": "Playdium"}, {"name": "Araliya Packaging Pvt Ltd | HRIS | Subscription", "stage": "Demo Done", "amount": 300, "close": "2025-12-12", "created": "2025-12-12", "owner": "Wathukarage", "account": "Araliya Packaging Pvt Ltd"}, {"name": "Shanith Enterprises | HRIS | Subscription", "stage": "Onboarding", "amount": 10, "close": "2025-12-19", "created": "2025-12-12", "owner": "Wathukarage", "account": "Shanith Enterprises"}, {"name": "Nexpress global resource | HRIS | Subscription", "stage": "SQL Lost", "amount": 16, "close": "2025-12-12", "created": "2025-12-12", "owner": "Wathukarage", "account": "Nexpress global resource"}, {"name": "Rethink Accountancy | HRIS| Subscription", "stage": "Not Responding", "amount": 15, "close": "2025-12-12", "created": "2025-12-11", "owner": "Perera", "account": "Rethink Accountancy"}];
+    const contactsData = [{"name": "Abdulla Abdul Cader", "created": "2026-04-03", "source": "Inbound - Website", "owner": "Senanayake", "account": "Sastho Lanka"}, {"name": "Kithmini Herath", "created": "2026-04-02", "source": "Sales Contact", "owner": "Perera", "account": "I Express Courier Service"}, {"name": "shaqeeq khan", "created": "2026-03-31", "source": "Calendly", "owner": "Perera", "account": "Zyner"}, {"name": "Pooja Check Ministry", "created": "2026-03-31", "source": "Management Referral", "owner": "Wathukarage", "account": "Accel Screening HK Limited"}, {"name": "Muthurajah Nanayakkara", "created": "2026-03-31", "source": "Sales Contact", "owner": "Perera", "account": "SEBSA World Pvt Ltd"}, {"name": "Asir Nawaz", "created": "2026-03-30", "source": "Social media - Inquiry", "owner": "Rathnayake", "account": "Pro Realtors Pvt Ltd"}, {"name": "Kaushan Chathuranjana", "created": "2026-03-30", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "Voice Lab Academy PVT Ltd"}, {"name": "Admin Coullax", "created": "2026-03-26", "source": "Sales Contact", "owner": "Perera", "account": "Coullax Pvt Ltd"}, {"name": "Sandaka Cabraal", "created": "2026-03-26", "source": "Sales Contact", "owner": "Senanayake", "account": "Fairway Hotel Colombo"}, {"name": "Ishini Ranathunga", "created": "2026-03-26", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "Gunasekara Filling Station"}, {"name": "Husna .", "created": "2026-03-26", "source": "Sales Contact", "owner": "Senanayake", "account": "AFI Corp"}, {"name": "Shaleen Shanthikumar", "created": "2026-03-26", "source": "Sales Contact", "owner": "Perera", "account": "The Serendipity Collection"}, {"name": "Ravindu Kothalawala", "created": "2026-03-26", "source": "Social media - Inquiry", "owner": "Perera", "account": "Wijaya Products"}, {"name": "Shanaka Wanduragala", "created": "2026-03-24", "source": "Social media - Inquiry", "owner": "Perera", "account": "ATN Services"}, {"name": "Kavinda Mahawedage", "created": "2026-03-24", "source": "Sales Contact", "owner": "Wathukarage", "account": "Posienta Technologies"}, {"name": "Tiffany Silva", "created": "2026-03-20", "source": "Inbound - Website", "owner": "Senanayake", "account": "Tiffany and Sienna (Private) Limited"}, {"name": "Ijas Siraj", "created": "2026-03-20", "source": "Inbound - Website", "owner": "Perera", "account": "TASH Gem & Jewellery (PVT) Ltd"}, {"name": "Malek .", "created": "2026-03-20", "source": null, "owner": "Perera", "account": "CRI Group"}, {"name": "Shan Fernando", "created": "2026-03-19", "source": "Calendly", "owner": "Senanayake", "account": "The Brand Agency"}, {"name": "Disuri Panditharatne", "created": "2026-03-19", "source": "Calendly", "owner": "Senanayake", "account": "Flyhire International Pvt Ltd"}, {"name": "Senith Randeepa", "created": "2026-03-19", "source": "Social media - Inquiry", "owner": "Perera", "account": "Brown Grow"}, {"name": "Dakshitha Perera", "created": "2026-03-18", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "Modicon Automative"}, {"name": "Sudesh Ekanayake", "created": "2026-03-18", "source": "Sales Contact", "owner": "Perera", "account": "Sterling BPO Solutions"}, {"name": "Ushani Attanayake", "created": "2026-03-18", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Upali Ads Pvt Ltd"}, {"name": "Chathura Wanninayake", "created": "2026-03-18", "source": "Management Referral", "owner": "Wathukarage", "account": "Omobio Pvt Ltd"}, {"name": "Tharushi Perera", "created": "2026-03-18", "source": "Inbound - Website", "owner": "Rathnayake", "account": "Three Sinha Industries"}, {"name": "Buddika Kaweeshwara Kohona", "created": "2026-03-18", "source": "Calendly", "owner": "Wathukarage", "account": "Dialog Business Services"}, {"name": "Chethiya Jayaratha", "created": "2026-03-17", "source": "Sales Contact", "owner": "Senanayake", "account": "OutDesk BPO Services (Pvt) Ltd"}, {"name": "Shuayb Muthalip", "created": "2026-03-17", "source": "Social media - Inquiry", "owner": "Perera", "account": "Malay Restaurant Dehiwala"}, {"name": "Harmith Hassim", "created": "2026-03-16", "source": "Inbound - Website", "owner": "Senanayake", "account": "Exel BPO"}, {"name": "Greshani Sirithunge", "created": "2026-03-16", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "Packsole Lanka Pvt Ltd"}, {"name": "Thulanee Malimbada", "created": "2026-03-16", "source": "Inbound - Website", "owner": "Rathnayake", "account": "Dilmah Ceylon Tea Company"}, {"name": "Sasitha Ruween", "created": "2026-03-13", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "DocLink"}, {"name": "Dinesh Kodikara", "created": "2026-03-13", "source": "Social media - Inquiry", "owner": "Perera", "account": "inet Solutions Pvvt Ltd"}, {"name": "Anushka Pinto", "created": "2026-03-13", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "Nano Tech Heavy Engineering"}, {"name": "Anjula Koralagamage", "created": "2026-03-13", "source": "Social media - Inquiry", "owner": "Perera", "account": "Cleanline Linen Management pvt ltd"}, {"name": "Sandushi Fernando", "created": "2026-03-13", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "Wickrama Holdings"}, {"name": "chamara .", "created": "2026-03-13", "source": "Inbound - Website", "owner": "Perera", "account": "Harpos Pvt LTD"}, {"name": "Roshan Perera", "created": "2026-03-12", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "Viloci Pvt Ltd"}, {"name": "Maduranga Dulmini", "created": "2026-03-12", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "Divimaga Holdings"}, {"name": "Chathurangi Harshini", "created": "2026-03-12", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "Chathurangi Harshini - Payroll Company"}, {"name": "Veranga Fernando", "created": "2026-03-12", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Munasco Capital Pvt Ltd"}, {"name": "Kandasami Hari Haran", "created": "2026-03-12", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "EBCON Pvt Ltd"}, {"name": "Chathu .", "created": "2026-03-12", "source": "Social media - Inquiry", "owner": "Perera", "account": "Classic Venture Security Pvt Ltd"}, {"name": "Dishan .", "created": "2026-03-12", "source": "Sales Contact", "owner": "Senanayake", "account": "ESOL College International"}, {"name": "Thilan Menaka", "created": "2026-03-11", "source": "Social media - Inquiry", "owner": "Perera", "account": "Gamage Man Power"}, {"name": "Laknima Hasaranganee", "created": "2026-03-11", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "Artiflora Studio"}, {"name": "Fawzan Mohommed", "created": "2026-03-10", "source": "Social media - Inquiry", "owner": "Perera", "account": "KSC Supermarket"}, {"name": "Anuki Premachandra", "created": "2026-03-10", "source": "Sales Contact", "owner": "Senanayake", "account": "Circle of Lines"}, {"name": "Lahiru Sandeepa", "created": "2026-03-10", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "Cenzios Pvt Ltd"}, {"name": "Kavindu Perera", "created": "2026-03-10", "source": "Social media - Inquiry", "owner": "Perera", "account": "Capital Employment Consultant"}, {"name": "Isuru Kasunjith", "created": "2026-03-10", "source": "Sales Contact", "owner": "Senanayake", "account": "Life Care Diagnostic Laboratories"}, {"name": "Devin .", "created": "2026-03-10", "source": "Sales Contact", "owner": "Senanayake", "account": "Three Sinha Industries"}, {"name": "Daminda -", "created": "2026-03-09", "source": "Social media - Inquiry", "owner": "Perera", "account": "Henan Frozen Food Pvt Ltd"}, {"name": "HR Manager", "created": "2026-03-09", "source": "Inbound - Website", "owner": "Rathnayake", "account": "Data Management Systems Pvt Ltd"}, {"name": "Dilshara .", "created": "2026-03-09", "source": "Social media - Inquiry", "owner": "Rathnayake", "account": "Best Paper Pvt Ltd"}, {"name": "Mohamed Ranoos", "created": "2026-03-07", "source": "Sales Contact", "owner": "Perera", "account": "Manpower Sri Lanka"}, {"name": "Muhammad Ruzhain", "created": "2026-03-06", "source": "Social media - Inquiry", "owner": "Perera", "account": "Bajaj Motor House"}, {"name": "Niranjan Nissanka", "created": "2026-03-06", "source": "Sales Contact", "owner": "Senanayake", "account": "Data Management Systems Pvt Ltd"}, {"name": "Matheesha Kaushal", "created": "2026-03-06", "source": "Social media - Inquiry", "owner": "Senanayake", "account": "INDI RMC Pvt Ltd"}, {"name": "Pulasthi Pudith", "created": "2026-03-06", "source": "Inbound - Website", "owner": "Senanayake", "account": "OX Global PVT Ltd"}, {"name": "Aneslin Bala", "created": "2026-03-06", "source": "Sales Contact", "owner": "Senanayake", "account": "Balanita pvt Ltd"}, {"name": "Erandi Wijesekara", "created": "2026-03-06", "source": "Inbound - Website", "owner": "Rathnayake", "account": "Uniworld Teas Pvt Ltd"}, {"name": "Eranda .", "created": "2026-03-06", "source": "Sales Contact", "owner": "Wathukarage", "account": "Singer"}, {"name": "Saliya Jayawardhena", "created": "2026-03-05", "source": "Social media - Inquiry", "owner": "Perera", "account": "Onsecure Security Pvt Ltd"}, {"name": "Umesha HR", "created": "2026-03-04", "source": "Sales Contact", "owner": "Perera", "account": "Anim8 Pvt Ltd"}, {"name": "Nethmi Perera", "created": "2026-03-03", "source": "Sales Contact", "owner": "Wathukarage", "account": "John Keells Properties"}, {"name": "Arshath .", "created": "2026-03-03", "source": "Sales Contact", "owner": "Wathukarage", "account": "Corznet pvt ltd"}, {"name": "Shanil Wijewardena", "created": "2026-03-03", "source": "Inbound - Website", "owner": "Wathukarage", "account": "Sprint Technologies Pty Ltd"}, {"name": "Rienzie Christoper Anderson", "created": "2026-03-03", "source": "Social media - Inquiry", "owner": "Perera", "account": "Asia Assets Finance"}, {"name": "Pamath Jayawardhana", "created": "2026-03-03", "source": "Inbound - Website", "owner": "Perera", "account": "Leisure Land"}, {"name": "Udara Sanjake", "created": "2026-03-03", "source": "Social media - Inquiry", "owner": "Perera", "account": "Ceylon Green Life Plantation"}, {"name": "Haritha Ramesh", "created": "2026-02-27", "source": "Sales Contact", "owner": "Perera", "account": "Cloud Telecom"}, {"name": "Nadisha Dilrukshi", "created": "2026-02-27", "source": "Social media - Inquiry", "owner": "Perera", "account": "Negombo South International School"}, {"name": "Niluka Nuwan", "created": "2026-02-27", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "MPCS Pallepola"}, {"name": "Tharanga Sandaruwan", "created": "2026-02-27", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "CLC Workfare Pvt Ltd"}, {"name": "Danuka Vidusanka", "created": "2026-02-27", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "NPS Packaging Pvt Ltd"}, {"name": "Asanka Wanshapala", "created": "2026-02-25", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Asian Grameen Pvt Ltd"}, {"name": "Shifan m85", "created": "2026-02-25", "source": "Social media - Inquiry", "owner": "Perera", "account": "Onvo Clothing Pvt Ltd"}, {"name": "Lahiru Jayasinghe", "created": "2026-02-25", "source": "Inbound - Website", "owner": "Perera", "account": "Skipod Manufacture Pvt Ltd"}, {"name": "Sanjaya .", "created": "2026-02-24", "source": "Social media - Inquiry", "owner": "Perera", "account": "Asriel Marketing Pvt Ltd"}, {"name": "Bhagya Battage", "created": "2026-02-24", "source": "Sales Contact", "owner": "Wathukarage", "account": "Indra Immigration"}, {"name": "Priyangi .", "created": "2026-02-24", "source": "Sales Contact", "owner": "Wathukarage", "account": "Me Colombo"}, {"name": "Chirath Madhawa", "created": "2026-02-23", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Janaka Printers"}, {"name": "Indika Kumara", "created": "2026-02-23", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "ADC Herbal Pvt Ltd"}, {"name": "Dilrukshi Ranawake", "created": "2026-02-23", "source": "Sales Contact", "owner": "Rathnayake", "account": "Mosh Holdings Pvt Ltd"}, {"name": "Damithree Madurappruma", "created": "2026-02-23", "source": "Sales Contact", "owner": "Wathukarage", "account": "Delta Spike Pvt Ltd"}, {"name": "Shanila Fernando", "created": "2026-02-20", "source": "Sales Contact", "owner": "Wathukarage", "account": "Nafso"}, {"name": "Manura Weerasinghe", "created": "2026-02-20", "source": "Sales Contact", "owner": "Wathukarage", "account": "Xcode Digital Labs"}, {"name": "Shakilo .", "created": "2026-02-20", "source": "Inbound - Website", "owner": "Wathukarage", "account": "WeBuild Studio"}, {"name": "Madushani Geeganage", "created": "2026-02-20", "source": "Inbound - Website", "owner": "Wathukarage", "account": "Nvision Pvt Ltd"}, {"name": "Damithra Liyanage", "created": "2026-02-20", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Richie Dairies Pvt Ltd"}, {"name": "Sadinsha Manura", "created": "2026-02-19", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Anura Printers"}, {"name": "Danielle D", "created": "2026-02-19", "source": null, "owner": "Perera", "account": "Glo hotels"}, {"name": "Lahiru Viraj", "created": "2026-02-19", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Isuru Wine Stores"}, {"name": "Nuwan Dharshana", "created": "2026-02-19", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "HNG Constructions"}, {"name": "Assistant to", "created": "2026-02-19", "source": "Inbound - Website", "owner": "Perera", "account": "Riyon International (Pvt) Ltd"}, {"name": "Zeenath Mohideen", "created": "2026-02-18", "source": "Social media - Inquiry", "owner": "Perera", "account": "Engage Finance Solutions"}, {"name": "Bhathiya Pathirana", "created": "2026-02-18", "source": "Sales Contact", "owner": "Wathukarage", "account": "MuveOne European Movers"}, {"name": "Chrishan Rodrigo", "created": "2026-02-17", "source": "Inbound - Website", "owner": "Perera", "account": "The big picture studios"}, {"name": "Shanika Exclusive", "created": "2026-02-17", "source": null, "owner": "Perera", "account": "Exclusive Lines"}, {"name": "Rooster Support", "created": "2026-02-17", "source": "Inbound - Website", "owner": "Rathnayake", "account": "KJE"}, {"name": "Sandy Wijesinghe", "created": "2026-02-16", "source": "Calendly", "owner": "Rathnayake", "account": "Seynar"}, {"name": "Pramodi .", "created": "2026-02-13", "source": "Sales Contact", "owner": "Wathukarage", "account": "Pandanus Beach Resort & Spa"}, {"name": "Piumi Piumi Vidanage", "created": "2026-02-13", "source": "Management Referral", "owner": "Wathukarage", "account": "Hatch works"}, {"name": "Dhanushka Dissanayake", "created": "2026-02-12", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Rajarata Tiles Company"}, {"name": "Gihan", "created": "2026-02-10", "source": "Social media - Inquiry", "owner": "Perera", "account": "Tharindu Farm"}, {"name": "Yalini Selvaraja", "created": "2026-02-10", "source": "Sales Contact", "owner": "Hettiarachchi", "account": "Melwire Rolling Pvt Ltd"}, {"name": "Shankari Sivalingam", "created": "2026-02-10", "source": "Sales Contact", "owner": "Hettiarachchi", "account": "Melwire Rolling Pvt Ltd"}, {"name": "Shankari Vithyagaran", "created": "2026-02-10", "source": "Sales Contact", "owner": "Wathukarage", "account": "Melwire Rolling Pvt Ltd"}, {"name": "Shehan Jayasena", "created": "2026-02-06", "source": "Inbound - Website", "owner": "Perera", "account": "PLAN B COWORKING (PVT) LTD"}, {"name": "Mushtaaq Shuhaib", "created": "2026-02-06", "source": "Inbound - Website", "owner": "Rathnayake", "account": "KJE"}, {"name": "Rooster Support", "created": "2026-02-06", "source": "Inbound - Website", "owner": "Hettiarachchi", "account": "Greenful Solutions Pvt Ltd"}, {"name": "Natasha Irena", "created": "2026-02-05", "source": "Sales Contact", "owner": "Perera", "account": "Advice Lab"}, {"name": "Avinash Rohith", "created": "2026-02-05", "source": "Sales Contact", "owner": "Perera", "account": "JFS Holdings Limited"}, {"name": "Mohamed Ali", "created": "2026-02-03", "source": "Inbound - Website", "owner": "Rathnayake", "account": "chenara dodge"}, {"name": "Shanaka Dassanayake", "created": "2026-02-02", "source": "Inbound - Website", "owner": "Perera", "account": "Piyadasa & Sons"}, {"name": "Shanuka Gomes", "created": "2026-02-02", "source": "Inbound - Website", "owner": "Hettiarachchi", "account": "Uga Resorts"}, {"name": "Manusha Gamage", "created": "2026-02-02", "source": "Inbound - Website", "owner": "Perera", "account": "ASAC | Company Secretary"}, {"name": "Kingswood British", "created": "2026-01-30", "source": "Calendly", "owner": "Perera", "account": "Kingswood British College"}, {"name": "Gayathri -", "created": "2026-01-29", "source": "Social media - Inquiry", "owner": "Perera", "account": "Semini Motors"}, {"name": "Samara Irandi", "created": "2026-01-29", "source": "Social media - Inquiry", "owner": "Perera", "account": "Ceylon Batik"}, {"name": "Enos Christie", "created": "2026-01-29", "source": "Calendly", "owner": "Wathukarage", "account": "Sole Troll"}, {"name": "Shenaya .", "created": "2026-01-29", "source": "Social media - Inquiry", "owner": "Perera", "account": "Greenful Solutions Pvt Ltd"}, {"name": "Royston Quyn", "created": "2026-01-28", "source": null, "owner": "Wathukarage", "account": "Provident Capital | THE LOFT"}, {"name": "Anoja Jeevani", "created": "2026-01-28", "source": "Inbound - Website", "owner": "Wathukarage", "account": "Provident Capital | THE LOFT"}, {"name": "Thilini Weliwatte", "created": "2026-01-28", "source": "Inbound - Website", "owner": "Wathukarage", "account": "Aero Travels Group Pvt Ltd"}, {"name": "James Kushal Johnpillai", "created": "2026-01-27", "source": "Calendly", "owner": "Perera", "account": "KJE"}, {"name": "Naveen", "created": "2026-01-27", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Sigiriya Kingdom Resort"}, {"name": "Sanjaya Wasala", "created": "2026-01-27", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "New Puttalam Hospital"}, {"name": "Andy Young", "created": "2026-01-26", "source": "Calendly", "owner": "Wathukarage", "account": "Bridgy INC"}, {"name": "Krishmal Dharmakeerthi", "created": "2026-01-26", "source": "Calendly", "owner": "Perera", "account": "Cormarant Beach Club"}, {"name": "Kanjala Jinendrarathne", "created": "2026-01-26", "source": "Inbound - Website", "owner": "Perera", "account": "Kandy Central Hospital"}, {"name": "Dinuka Panduka", "created": "2026-01-26", "source": "Inbound - Website", "owner": "Hettiarachchi", "account": "Design Studio"}, {"name": "Sachini Ratnapala", "created": "2026-01-23", "source": "Sales Contact", "owner": "Wathukarage", "account": "Echt social"}, {"name": "Danith Nadheera Warnatunga", "created": "2026-01-22", "source": "Sales Contact", "owner": "Wathukarage", "account": "BotCalm"}, {"name": "Jude Fernando", "created": "2026-01-22", "source": "Social media - Inquiry", "owner": "Perera", "account": "Growell Lanka Pvt Ltd"}, {"name": "Nuwangi Fernando", "created": "2026-01-22", "source": "Inbound - Website", "owner": "Perera", "account": "Magical isle Holidays"}, {"name": "Nelson Jacob", "created": "2026-01-22", "source": "Inbound - Website", "owner": "Perera", "account": "Benchmark Staffing Solutions"}, {"name": "Malith Aravinda", "created": "2026-01-21", "source": "Social media - Inquiry", "owner": "Perera", "account": "Sarath Caterers"}, {"name": "Sachini Jayawardane", "created": "2026-01-20", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Mostech Holdings Pvt Ltd"}, {"name": "Sameera Dilshan", "created": "2026-01-20", "source": "Social media - Inquiry", "owner": "Perera", "account": "Sam Bakery"}, {"name": "Diluka Weerasinghe", "created": "2026-01-20", "source": "Social media - Inquiry", "owner": "Perera", "account": "Hanwei Gajashakthi Security Service Pvt Ltd"}, {"name": "Thilini Sameera", "created": "2026-01-20", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "GST Organic Cinnamon Ceylon Pvt Ltd"}, {"name": "Nimasha Savindi", "created": "2026-01-20", "source": "Social media - Inquiry", "owner": "Perera", "account": "Premachandra Medi House"}, {"name": "Mohommad Mazhar", "created": "2026-01-20", "source": "Social media - Inquiry", "owner": "Perera", "account": "Nano Celluar Pvt Ltd"}, {"name": "Mithurshan IT manager", "created": "2026-01-20", "source": "Inbound - Website", "owner": "Wathukarage", "account": "Hotel East Lagoon \u2013 Batticaloa"}, {"name": "Aruni", "created": "2026-01-20", "source": "Calendly", "owner": "Aravinthakumar", "account": "Type B Digital"}, {"name": "Hussain Hatim", "created": "2026-01-20", "source": "Inbound - Website", "owner": "Wathukarage", "account": "A&M Food Company (Pvt) Ltd"}, {"name": "Sandith De Silva", "created": "2026-01-20", "source": "Sales Contact", "owner": "Wathukarage", "account": "Esess Hospitals"}, {"name": "Sandeepa Kalurathne", "created": "2026-01-17", "source": "Sales Contact", "owner": "Wathukarage", "account": "Spark Shift Pvt Ltd"}, {"name": "Pubudu Bernard", "created": "2026-01-17", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Berner Lanka Pvt Ltd"}, {"name": "Suranga Thissera", "created": "2026-01-16", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Silver Shield Security"}, {"name": "Erandi COO", "created": "2026-01-16", "source": null, "owner": "Wathukarage", "account": "Needs Lanka Plantation & Food Product Pvt Ltd"}, {"name": "Jenali Fernando", "created": "2026-01-16", "source": "Social media - Inquiry", "owner": "Perera", "account": "Adam Carbons Pvt Ltd"}, {"name": "Gimhana Senevirathna", "created": "2026-01-16", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Needs Lanka Plantation & Food Product Pvt Ltd"}, {"name": "Lavan Shakya", "created": "2026-01-16", "source": "Social media - Inquiry", "owner": "Perera", "account": "Merk Colombo Pvt Ltd"}, {"name": "Sameera Maa", "created": "2026-01-16", "source": "Social media - Inquiry", "owner": "Perera", "account": "Maa Resorts & Spa Pvt Ltd"}, {"name": "Dinesh Chinthaka", "created": "2026-01-15", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Dinesha Embroidery Pvt Ltd"}, {"name": "Chanuka Gunasekara", "created": "2026-01-14", "source": "Calendly", "owner": "Wathukarage", "account": "Incubate Labs Pvt Ltd"}, {"name": "Manusha Dewasurendra", "created": "2026-01-14", "source": null, "owner": "Wathukarage", "account": "Eight25Media (Pvt) Ltd"}, {"name": "Rooster Support", "created": "2026-01-13", "source": "Inbound - Website", "owner": "Hettiarachchi", "account": "Digital Marketing Strategies"}, {"name": "Rasheed Ismail", "created": "2026-01-13", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Bravo Lanka Pvt Ltd"}, {"name": "Rasith Shanaka", "created": "2026-01-13", "source": "Social media - Inquiry", "owner": "Perera", "account": "New Lanka Pharmacy Pvt Ltd"}, {"name": "Navindu (Dessina)", "created": "2026-01-13", "source": "Reseller Referral", "owner": "Wathukarage", "account": "Boostnet Energy"}, {"name": "Gimhan Ahangamagamage", "created": "2026-01-12", "source": "Inbound - Website", "owner": "Perera", "account": "Gmart Online"}, {"name": "Gimhan Tharuka", "created": "2026-01-12", "source": null, "owner": "Rathnayake", "account": "Gmart Online"}, {"name": "Sahas Senadheera", "created": "2026-01-12", "source": "Inbound - Website", "owner": "Perera", "account": "Gmart Online"}, {"name": "Vikashan Muruganandhan", "created": "2026-01-12", "source": "Sales Contact", "owner": "Wathukarage", "account": "Uniworld Teas Pvt Ltd"}, {"name": "Sivashankar Sathiyathevan", "created": "2026-01-09", "source": "Inbound - Website", "owner": "Perera", "account": "CASA BPO SDN>BHD"}, {"name": "Hatim Thaaleem", "created": "2026-01-09", "source": "Sales Contact", "owner": "Wathukarage", "account": "Somizu.lk Pvt Ltd"}, {"name": "Abarna Ranjan", "created": "2026-01-09", "source": "Inbound - Website", "owner": "Hettiarachchi", "account": "Frankils Developments Pvt Ltd (Kala Holdings)"}, {"name": "Isuru Pharma", "created": "2026-01-09", "source": "Management Referral", "owner": "Wathukarage", "account": "Abc pharma Services Pvt Ltd"}, {"name": "Kaushal Mendis", "created": "2026-01-09", "source": "Inbound - Website", "owner": "Perera", "account": "ARA Holdings"}, {"name": "Roshintha Perera", "created": "2026-01-08", "source": "Sales Contact", "owner": "Wathukarage", "account": "Rope Digital"}, {"name": "Sachin It Dept", "created": "2026-01-08", "source": "Social media - Inquiry", "owner": "Perera", "account": "Athgiri Hotels Pvt Ltd"}, {"name": "Kavinda Perera", "created": "2026-01-07", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Green Space Lanka Pvt Ltd"}, {"name": "Ruchira Perera", "created": "2026-01-07", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Oshiru Motors"}, {"name": "Anuke Ganegoda", "created": "2026-01-07", "source": "Inbound - Website", "owner": "Perera", "account": "Sansa Technologies"}, {"name": "Shamendry Stephen", "created": "2026-01-07", "source": null, "owner": "Wathukarage", "account": "Design Studio"}, {"name": "Harini Perera", "created": "2026-01-07", "source": "Management Referral", "owner": "Wathukarage", "account": "Design Studio"}, {"name": "Uthum Waramana", "created": "2026-01-07", "source": "Social media - Inquiry", "owner": "Perera", "account": "Swell Shacks"}, {"name": "Sudarshana dms", "created": "2026-01-07", "source": "Social media - Inquiry", "owner": "Perera", "account": "Digital Marketing Strategies"}, {"name": "Saneef Shahmy", "created": "2026-01-06", "source": "Sales Contact", "owner": "Perera", "account": "Webtezza Pvt Ltd"}, {"name": "Dinu De Silva", "created": "2026-01-06", "source": "Social media - Inquiry", "owner": "Perera", "account": "Veeraa Pvt Ltd"}, {"name": "Rasangi Pemooli", "created": "2026-01-02", "source": "Management Referral", "owner": "Wathukarage", "account": "Fort Hotels Group"}, {"name": "Yasara Ramanayake", "created": "2025-12-31", "source": "Social media - Inquiry", "owner": "Wathukarage", "account": "Fika Deli Colombo"}, {"name": "Rooster Support", "created": "2025-12-31", "source": "Inbound - Website", "owner": "Perera", "account": "Nothern Food Company"}, {"name": "Kapilan Karunananth", "created": "2025-12-29", "source": "Social media - Inquiry", "owner": "Perera", "account": "Nothern Food Company"}, {"name": "Anas Main Point of contact", "created": "2025-12-29", "source": null, "owner": "Wathukarage", "account": "Mustard Gourmet (PVT) Ltd"}, {"name": "Zakir Siraj", "created": "2025-12-29", "source": "Inbound - Website", "owner": "Wathukarage", "account": "Mustard Gourmet (PVT) Ltd"}, {"name": "Thejani Kavindya", "created": "2025-12-29", "source": "Social media - Inquiry", "owner": "Perera", "account": "Peace Makers Foundation"}, {"name": "Fahim Nowsar", "created": "2025-12-29", "source": "Social media - Inquiry", "owner": "Perera", "account": "Real Freak Company"}, {"name": "Prashan Dumindu", "created": "2025-12-29", "source": "Social media - Inquiry", "owner": "Perera", "account": "Rapid Care Laborites"}, {"name": "Zainul Abdeen", "created": "2025-12-23", "source": "Social media - Inquiry", "owner": "Perera", "account": "Marqo Industries"}, {"name": "Pathum Senadeera", "created": "2025-12-22", "source": "Social media - Inquiry", "owner": "Perera", "account": "High Security Bouncer Service"}, {"name": "Sandy W", "created": "2025-12-22", "source": "Calendly", "owner": "Perera", "account": "Seynar"}, {"name": "Lakdam Silva", "created": "2025-12-22", "source": "Inbound - Website", "owner": "Perera", "account": "Studio Lakdam Pvt Ltd"}, {"name": "Champika Abekumara", "created": "2025-12-22", "source": "Social media - Inquiry", "owner": "Perera", "account": "International Export Pvt Ltd"}, {"name": "Malsha Abeynayake", "created": "2025-12-22", "source": "Inbound - Website", "owner": "Hettiarachchi", "account": "Rocky Holdings Pvt Ltd"}];
+    const accountsData = [{"name": "Sastho Lanka", "created": "2026-04-03", "industry": "Retail & FMCG", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "I Express Courier Service", "created": "2026-04-02", "industry": "Logistics & Transportation", "owner": "Perera", "type": null, "revenue": null}, {"name": "Zyner", "created": "2026-03-31", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "Accel Screening HK Limited", "created": "2026-03-31", "industry": "Healthcare & Hospitals", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "SEBSA World Pvt Ltd", "created": "2026-03-31", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "Abacus Technologies (Pvt) Ltd.", "created": "2026-03-31", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Pro Realtors Pvt Ltd", "created": "2026-03-30", "industry": "Education & Training Institutes", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Voice Lab Academy PVT Ltd", "created": "2026-03-30", "industry": "Education & Training Institutes", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Coullax Pvt Ltd", "created": "2026-03-26", "industry": "Logistics & Transportation", "owner": "Perera", "type": null, "revenue": null}, {"name": "Fairway Hotel Colombo", "created": "2026-03-26", "industry": "Hospitality & Tourism", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Gunasekara Filling Station", "created": "2026-03-26", "industry": "Logistics & Transportation", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "AFI Corp", "created": "2026-03-26", "industry": "Talent and Recruitment agencies", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "The Serendipity Collection", "created": "2026-03-26", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Wijaya Products", "created": "2026-03-26", "industry": "Manufacturing & Apparel", "owner": "Perera", "type": null, "revenue": null}, {"name": "ATN Services", "created": "2026-03-24", "industry": "Accounting & Professional Services", "owner": "Perera", "type": null, "revenue": null}, {"name": "Posienta Technologies", "created": "2026-03-24", "industry": "Retail & FMCG", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Tiffany and Sienna (Private) Limited", "created": "2026-03-20", "industry": "Manufacturing & Apparel", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "TASH Gem & Jewellery (PVT) Ltd", "created": "2026-03-20", "industry": "Retail & FMCG", "owner": "Perera", "type": null, "revenue": null}, {"name": "CRI Group", "created": "2026-03-20", "industry": "BPO'S", "owner": "Perera", "type": null, "revenue": null}, {"name": "The Brand Agency", "created": "2026-03-19", "industry": "IT & Technology Companies", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Flyhire International Pvt Ltd", "created": "2026-03-19", "industry": "Talent and Recruitment agencies", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Brown Grow", "created": "2026-03-19", "industry": "Logistics & Transportation", "owner": "Perera", "type": null, "revenue": null}, {"name": "Modicon Automative", "created": "2026-03-18", "industry": "Manufacturing & Apparel", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Sterling BPO Solutions", "created": "2026-03-18", "industry": "BPO'S", "owner": "Perera", "type": null, "revenue": null}, {"name": "Upali Ads Pvt Ltd", "created": "2026-03-18", "industry": "Logistics & Transportation", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Omobio Pvt Ltd", "created": "2026-03-18", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Dialog Business Services", "created": "2026-03-18", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "OutDesk BPO Services (Pvt) Ltd", "created": "2026-03-17", "industry": "BPO'S", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Malay Restaurant Dehiwala", "created": "2026-03-17", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Exel BPO", "created": "2026-03-16", "industry": "BPO'S", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Packsole Lanka Pvt Ltd", "created": "2026-03-16", "industry": "Manufacturing & Apparel", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "DocLink", "created": "2026-03-13", "industry": "IT & Technology Companies", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "inet Solutions Pvvt Ltd", "created": "2026-03-13", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Nano Tech Heavy Engineering", "created": "2026-03-13", "industry": "Manufacturing & Apparel", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Cleanline Linen Management pvt ltd", "created": "2026-03-13", "industry": "Manufacturing & Apparel", "owner": "Perera", "type": null, "revenue": null}, {"name": "Wickrama Holdings", "created": "2026-03-13", "industry": "Manufacturing & Apparel", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Harpos Pvt LTD", "created": "2026-03-13", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Viloci Pvt Ltd", "created": "2026-03-12", "industry": "Hospitality & Tourism", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Divimaga Holdings", "created": "2026-03-12", "industry": "Financial Services & Insurance", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Chathurangi Harshini - Payroll Company", "created": "2026-03-12", "industry": "Financial Services & Insurance", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Munasco Capital Pvt Ltd", "created": "2026-03-12", "industry": "Retail & FMCG", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "EBCON Pvt Ltd", "created": "2026-03-12", "industry": "IT & Technology Companies", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Classic Venture Security Pvt Ltd", "created": "2026-03-12", "industry": "Talent and Recruitment agencies", "owner": "Perera", "type": null, "revenue": null}, {"name": "ESOL College International", "created": "2026-03-12", "industry": "Education & Training Institutes", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Gamage Man Power", "created": "2026-03-11", "industry": "Accounting & Professional Services", "owner": "Perera", "type": null, "revenue": null}, {"name": "Artiflora Studio", "created": "2026-03-11", "industry": "Manufacturing & Apparel", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "KSC Supermarket", "created": "2026-03-10", "industry": "Logistics & Transportation", "owner": "Perera", "type": null, "revenue": null}, {"name": "Circle of Lines", "created": "2026-03-10", "industry": "IT & Technology Companies", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Cenzios Pvt Ltd", "created": "2026-03-10", "industry": "IT & Technology Companies", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Capital Employment Consultant", "created": "2026-03-10", "industry": "Talent and Recruitment agencies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Life Care Diagnostic Laboratories", "created": "2026-03-10", "industry": "Healthcare & Hospitals", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Three Sinha Industries", "created": "2026-03-10", "industry": "Healthcare & Hospitals", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Henan Frozen Food Pvt Ltd", "created": "2026-03-09", "industry": "Retail & FMCG", "owner": "Perera", "type": null, "revenue": null}, {"name": "Best Paper Pvt Ltd", "created": "2026-03-09", "industry": "Manufacturing & Apparel", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Manpower Sri Lanka", "created": "2026-03-07", "industry": "BPO'S", "owner": "Perera", "type": null, "revenue": null}, {"name": "Bajaj Motor House", "created": "2026-03-06", "industry": "Logistics & Transportation", "owner": "Perera", "type": null, "revenue": null}, {"name": "Data Management Systems Pvt Ltd", "created": "2026-03-06", "industry": "IT & Technology Companies", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "INDI RMC Pvt Ltd", "created": "2026-03-06", "industry": "IT & Technology Companies", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "OX Global PVT Ltd", "created": "2026-03-06", "industry": "IT & Technology Companies", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Balanita pvt Ltd", "created": "2026-03-06", "industry": "IT & Technology Companies", "owner": "Senanayake", "type": null, "revenue": null}, {"name": "Singer", "created": "2026-03-06", "industry": "Retail & FMCG", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Onsecure Security Pvt Ltd", "created": "2026-03-05", "industry": "Healthcare & Hospitals", "owner": "Perera", "type": null, "revenue": null}, {"name": "Anim8 Pvt Ltd", "created": "2026-03-04", "industry": "Healthcare & Hospitals", "owner": "Perera", "type": null, "revenue": null}, {"name": "John Keells Properties", "created": "2026-03-03", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Corznet pvt ltd", "created": "2026-03-03", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Sprint Technologies Pty Ltd", "created": "2026-03-03", "industry": "Hospitality & Tourism", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Asia Assets Finance", "created": "2026-03-03", "industry": "Financial Services & Insurance", "owner": "Perera", "type": null, "revenue": null}, {"name": "Leisure Land", "created": "2026-03-03", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Ceylon Green Life Plantation", "created": "2026-03-03", "industry": "Manufacturing & Apparel", "owner": "Perera", "type": null, "revenue": null}, {"name": "Cloud Telecom", "created": "2026-02-27", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Negombo South International School", "created": "2026-02-27", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "MPCS Pallepola", "created": "2026-02-27", "industry": "Talent and Recruitment agencies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "CLC Workfare Pvt Ltd", "created": "2026-02-27", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "NPS Packaging Pvt Ltd", "created": "2026-02-27", "industry": "Financial Services & Insurance", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Asian Grameen Pvt Ltd", "created": "2026-02-25", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Onvo Clothing Pvt Ltd", "created": "2026-02-25", "industry": "Manufacturing & Apparel", "owner": "Perera", "type": null, "revenue": null}, {"name": "Skipod Manufacture Pvt Ltd", "created": "2026-02-25", "industry": "Manufacturing & Apparel", "owner": "Perera", "type": null, "revenue": null}, {"name": "Asriel Marketing Pvt Ltd", "created": "2026-02-24", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "Indra Immigration", "created": "2026-02-24", "industry": "Logistics & Transportation", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Me Colombo", "created": "2026-02-24", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Janaka Printers", "created": "2026-02-23", "industry": "Retail & FMCG", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "ADC Herbal Pvt Ltd", "created": "2026-02-23", "industry": "Healthcare & Hospitals", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Mosh Holdings Pvt Ltd", "created": "2026-02-23", "industry": "Retail & FMCG", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Delta Spike Pvt Ltd", "created": "2026-02-23", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Nafso", "created": "2026-02-20", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Xcode Digital Labs", "created": "2026-02-20", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "WeBuild Studio", "created": "2026-02-20", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Nvision Pvt Ltd", "created": "2026-02-20", "industry": "Accounting & Professional Services", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Richie Dairies Pvt Ltd", "created": "2026-02-20", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Anura Printers", "created": "2026-02-19", "industry": "Retail & FMCG", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Glo hotels", "created": "2026-02-19", "industry": "BPO'S", "owner": "Perera", "type": null, "revenue": null}, {"name": "Isuru Wine Stores", "created": "2026-02-19", "industry": "Retail & FMCG", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "HNG Constructions", "created": "2026-02-19", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Riyon International (Pvt) Ltd", "created": "2026-02-19", "industry": "Education & Training Institutes", "owner": "Perera", "type": null, "revenue": null}, {"name": "Engage Finance Solutions", "created": "2026-02-18", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "MuveOne European Movers", "created": "2026-02-18", "industry": "BPO'S", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "The big picture studios", "created": "2026-02-17", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Exclusive Lines", "created": "2026-02-17", "industry": "Retail & FMCG", "owner": "Perera", "type": null, "revenue": null}, {"name": "Pandanus Beach Resort & Spa", "created": "2026-02-13", "industry": "Hospitality & Tourism", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Hatch works", "created": "2026-02-13", "industry": "Hospitality & Tourism", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Rajarata Tiles Company", "created": "2026-02-12", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Tharindu Farm", "created": "2026-02-10", "industry": "Retail & FMCG", "owner": "Perera", "type": null, "revenue": null}, {"name": "Melwire Rolling Pvt Ltd", "created": "2026-02-10", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "PLAN B COWORKING (PVT) LTD", "created": "2026-02-06", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Advice Lab", "created": "2026-02-05", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "JFS Holdings Limited", "created": "2026-02-05", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Piyadasa & Sons", "created": "2026-02-02", "industry": "Manufacturing & Apparel", "owner": "Perera", "type": null, "revenue": null}, {"name": "Kingswood British College", "created": "2026-01-30", "industry": "Education & Training Institutes", "owner": "Perera", "type": null, "revenue": null}, {"name": "Semini Motors", "created": "2026-01-29", "industry": "Manufacturing & Apparel", "owner": "Perera", "type": null, "revenue": null}, {"name": "Ceylon Batik", "created": "2026-01-29", "industry": "Manufacturing & Apparel", "owner": "Perera", "type": null, "revenue": null}, {"name": "Sole Troll", "created": "2026-01-29", "industry": "Retail & FMCG", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Greenful Solutions Pvt Ltd", "created": "2026-01-29", "industry": "Logistics & Transportation", "owner": "Perera", "type": null, "revenue": null}, {"name": "Provident Capital | THE LOFT", "created": "2026-01-28", "industry": "Hospitality & Tourism", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Aero Travels Group Pvt Ltd", "created": "2026-01-28", "industry": "BPO'S", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "KJE", "created": "2026-01-27", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Sigiriya Kingdom Resort", "created": "2026-01-27", "industry": "Hospitality & Tourism", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "New Puttalam Hospital", "created": "2026-01-27", "industry": "Healthcare & Hospitals", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Bridgy INC", "created": "2026-01-26", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Cormarant Beach Club", "created": "2026-01-26", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Kandy Central Hospital", "created": "2026-01-26", "industry": "Healthcare & Hospitals", "owner": "Perera", "type": null, "revenue": null}, {"name": "Echt social", "created": "2026-01-23", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "BotCalm", "created": "2026-01-22", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Growell Lanka Pvt Ltd", "created": "2026-01-22", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "Magical isle Holidays", "created": "2026-01-22", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Benchmark Staffing Solutions", "created": "2026-01-22", "industry": "Talent and Recruitment agencies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Sarath Caterers", "created": "2026-01-21", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Mostech Holdings Pvt Ltd", "created": "2026-01-20", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Sam Bakery", "created": "2026-01-20", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "Hanwei Gajashakthi Security Service Pvt Ltd", "created": "2026-01-20", "industry": "Financial Services & Insurance", "owner": "Perera", "type": null, "revenue": null}, {"name": "GST Organic Cinnamon Ceylon Pvt Ltd", "created": "2026-01-20", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Premachandra Medi House", "created": "2026-01-20", "industry": "Healthcare & Hospitals", "owner": "Perera", "type": null, "revenue": null}, {"name": "Nano Celluar Pvt Ltd", "created": "2026-01-20", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "Hotel East Lagoon \u2013 Batticaloa", "created": "2026-01-20", "industry": "Hospitality & Tourism", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "A&M Food Company (Pvt) Ltd", "created": "2026-01-20", "industry": "Retail & FMCG", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Esess Hospitals", "created": "2026-01-20", "industry": "Healthcare & Hospitals", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Spark Shift Pvt Ltd", "created": "2026-01-17", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Berner Lanka Pvt Ltd", "created": "2026-01-17", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Silver Shield Security", "created": "2026-01-16", "industry": "Logistics & Transportation", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Adam Carbons Pvt Ltd", "created": "2026-01-16", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "Needs Lanka Plantation & Food Product Pvt Ltd", "created": "2026-01-16", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Merk Colombo Pvt Ltd", "created": "2026-01-16", "industry": "Education & Training Institutes", "owner": "Perera", "type": null, "revenue": null}, {"name": "Maa Resorts & Spa Pvt Ltd", "created": "2026-01-16", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Dinesha Embroidery Pvt Ltd", "created": "2026-01-15", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Incubate Labs Pvt Ltd", "created": "2026-01-14", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Bravo Lanka Pvt Ltd", "created": "2026-01-13", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "New Lanka Pharmacy Pvt Ltd", "created": "2026-01-13", "industry": "Healthcare & Hospitals", "owner": "Perera", "type": null, "revenue": null}, {"name": "Boostnet Energy", "created": "2026-01-13", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Gmart Online", "created": "2026-01-12", "industry": "Retail & FMCG", "owner": "Perera", "type": null, "revenue": null}, {"name": "Uniworld Teas Pvt Ltd", "created": "2026-01-12", "industry": "Retail & FMCG", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "CASA BPO SDN>BHD", "created": "2026-01-09", "industry": null, "owner": "Perera", "type": null, "revenue": null}, {"name": "Somizu.lk Pvt Ltd", "created": "2026-01-09", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Abc pharma Services Pvt Ltd", "created": "2026-01-09", "industry": "Healthcare & Hospitals", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "ARA Holdings", "created": "2026-01-09", "industry": null, "owner": "Perera", "type": null, "revenue": null}, {"name": "Rope Digital", "created": "2026-01-08", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Athgiri Hotels Pvt Ltd", "created": "2026-01-08", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Green Space Lanka Pvt Ltd", "created": "2026-01-07", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Oshiru Motors", "created": "2026-01-07", "industry": "Logistics & Transportation", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Sansa Technologies", "created": "2026-01-07", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Design Studio", "created": "2026-01-07", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Swell Shacks", "created": "2026-01-07", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Digital Marketing Strategies", "created": "2026-01-07", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Webtezza Pvt Ltd", "created": "2026-01-06", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Veeraa Pvt Ltd", "created": "2026-01-06", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "Fort Hotels Group", "created": "2026-01-02", "industry": "Hospitality & Tourism", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Fika Deli Colombo", "created": "2025-12-31", "industry": "Hospitality & Tourism", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Nothern Food Company", "created": "2025-12-29", "industry": "Retail & FMCG", "owner": "Perera", "type": null, "revenue": null}, {"name": "Mustard Gourmet (PVT) Ltd", "created": "2025-12-29", "industry": "Hospitality & Tourism", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Peace Makers Foundation", "created": "2025-12-29", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "Real Freak Company", "created": "2025-12-29", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "Rapid Care Laborites", "created": "2025-12-29", "industry": "Healthcare & Hospitals", "owner": "Perera", "type": null, "revenue": null}, {"name": "Marqo Industries", "created": "2025-12-23", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "High Security Bouncer Service", "created": "2025-12-22", "industry": "Accounting & Professional Services", "owner": "Perera", "type": null, "revenue": null}, {"name": "Seynar", "created": "2025-12-22", "industry": "BPO'S", "owner": "Perera", "type": null, "revenue": null}, {"name": "Studio Lakdam Pvt Ltd", "created": "2025-12-22", "industry": "Demo Not done", "owner": "Perera", "type": null, "revenue": null}, {"name": "International Export Pvt Ltd", "created": "2025-12-22", "industry": "Manufacturing & Apparel", "owner": "Perera", "type": null, "revenue": null}, {"name": "Homes Universal", "created": "2025-12-22", "industry": "Accounting & Professional Services", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Yasith Creations Pvt Ltd", "created": "2025-12-19", "industry": "Logistics & Transportation", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Smart Care Pvt Ltd", "created": "2025-12-18", "industry": "Demo Not done", "owner": "Rathnayake", "type": null, "revenue": null}, {"name": "SilkeeSolutions", "created": "2025-12-17", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "Abhiman Investment Pvt Ltd", "created": "2025-12-17", "industry": "Accounting & Professional Services", "owner": "Perera", "type": null, "revenue": null}, {"name": "Frankils Developments Pvt Ltd (Kala Holdings)", "created": "2025-12-17", "industry": "Logistics & Transportation", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Rocky Holdings Pvt Ltd", "created": "2025-12-17", "industry": "Accounting & Professional Services", "owner": "Perera", "type": null, "revenue": null}, {"name": "IFGBPO Pvt Ltd", "created": "2025-12-17", "industry": "BPO'S", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Streamline HR SL (Pvt) Ltd", "created": "2025-12-17", "industry": "BPO'S", "owner": "Perera", "type": null, "revenue": null}, {"name": "Universal labels", "created": "2025-12-17", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "River View Villas (Pvt) Ltd", "created": "2025-12-16", "industry": "Hospitality & Tourism", "owner": "Perera", "type": null, "revenue": null}, {"name": "Atom Technologies (Pvt) Ltd", "created": "2025-12-15", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "ProActiveChain PVT Ltd", "created": "2025-12-15", "industry": "IT & Technology Companies", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Dinara Clothing Pvt Ltd", "created": "2025-12-15", "industry": "Manufacturing & Apparel", "owner": "Perera", "type": null, "revenue": null}, {"name": "Kasun Printers", "created": "2025-12-15", "industry": "Retail & FMCG", "owner": "Perera", "type": null, "revenue": null}, {"name": "Green Park Car Care", "created": "2025-12-13", "industry": "Logistics & Transportation", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Araliya Packaging Pvt Ltd", "created": "2025-12-12", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Shanith Enterprises", "created": "2025-12-12", "industry": "Manufacturing & Apparel", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Nexpress global resource", "created": "2025-12-12", "industry": "Financial Services & Insurance", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "Rethink Accountancy", "created": "2025-12-11", "industry": "Accounting & Professional Services", "owner": "Perera", "type": null, "revenue": null}, {"name": "Simpex Holdings", "created": "2025-12-11", "industry": "IT & Technology Companies", "owner": "Perera", "type": null, "revenue": null}, {"name": "East & West Travel & Constructions", "created": "2025-12-11", "industry": "Logistics & Transportation", "owner": "Perera", "type": null, "revenue": null}, {"name": "Agro Momentum (Pvt) Ltd", "created": "2025-12-10", "industry": "Retail & FMCG", "owner": "Wathukarage", "type": null, "revenue": null}, {"name": "MCB Savvy Concepts", "created": "2025-12-10", "industry": "Accounting & Professional Services", "owner": "Perera", "type": null, "revenue": null}, {"name": "Synergy Consultant", "created": "2025-12-10", "industry": "Accounting & Professional Services", "owner": "Perera", "type": null, "revenue": null}];
+    const leadsData = [{"name": "Chandika K Ekanayaka", "created": "2026-04-07", "source": "Inbound - Website", "status": null, "owner": "Hettiarachchi", "company": "Chan K Fashion"}, {"name": "Fairlin Perera", "created": "2026-04-07", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "ACAN GROUP PTY LTD"}, {"name": "Kaveesha Perera", "created": "2026-04-07", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "kaveesha@ixdlabs.com"}, {"name": "Koshal Weerasinghe", "created": "2026-04-07", "source": "Social media - Inquiry", "status": "Contacted", "owner": "Rathnayake", "company": "H.E Engineering Pvt Ltd"}, {"name": "SOFTCLOUD LTD", "created": "2026-04-07", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "Soft Cloud"}, {"name": "denura kaluarachchi", "created": "2026-04-06", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "apex consulting (PVT) LTD"}, {"name": "Nikil Kande Gamage", "created": "2026-04-06", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "BIGTIFY (PRIVATE) LIMITED"}, {"name": "Yasiru Bandara", "created": "2026-04-06", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "The Blac Cafe and Restaurant"}, {"name": "Sew PERERA", "created": "2026-04-05", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "Aascendora Pvt Ltd"}, {"name": "Gaweshi Perera", "created": "2026-04-05", "source": "Inbound - Website", "status": "Contacted", "owner": "Hettiarachchi", "company": "Serenity Villa Sri Lanka"}, {"name": "Fathima Kaleela", "created": "2026-04-04", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "Odera"}, {"name": "prajith gunwardene", "created": "2026-04-03", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "hegra holdings"}, {"name": "Shiandra Abeyesundere", "created": "2026-04-03", "source": "Calendly", "status": "Contacted", "owner": "Rathnayake", "company": "IOG Global Pvt Ltd"}, {"name": "Sadew Dulakshitha", "created": "2026-04-03", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "The Blac (pvt) Ltd"}, {"name": "Vinuka Sellahewa", "created": "2026-04-02", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "Virtuo Reach"}, {"name": "Mohamed Saajith", "created": "2026-04-01", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "CoachNew"}, {"name": "Nippon Solutions", "created": "2026-04-01", "source": "Inbound - Website", "status": "Contact in Future", "owner": "Rathnayake", "company": "Nippon IT and Educational Solution (NITES)"}, {"name": "Chamuth Chamandana", "created": "2026-03-31", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "Chamuth"}, {"name": "Mariyathas Mariyathas", "created": "2026-03-31", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "thanu"}, {"name": "Sandun Silva", "created": "2026-03-30", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "Shelon Holdings Pvt Ltd"}, {"name": "Avin Kavish", "created": "2026-03-30", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Viduli"}, {"name": "Steve Viola", "created": "2026-03-30", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "CRE Advisors Inc"}, {"name": "Zentrics Digital", "created": "2026-03-30", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "Zentrics Digital"}, {"name": "Given Keakitse", "created": "2026-03-29", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Gift security service and training"}, {"name": "Mustaq Nazeer", "created": "2026-03-28", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "Brighton Papers (Pvt) Ltd"}, {"name": "Shalinthana Abeynayake", "created": "2026-03-27", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "E-Futures Private Limited"}, {"name": "Jeewantha Induruwa", "created": "2026-03-27", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "Softlogic Life"}, {"name": "signet Consultants", "created": "2026-03-27", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Signet Consultants (Pvt) Ltd"}, {"name": "Prasath Satchithanandam", "created": "2026-03-26", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "Harris and Menuk (Pvt) Ltd"}, {"name": "Arun Prabhath", "created": "2026-03-26", "source": "Social media - Inquiry", "status": "Contacted", "owner": "Rathnayake", "company": "Salon arosh"}, {"name": "Chandula Nanayakkara", "created": "2026-03-26", "source": "Sales Contact", "status": "Contacted", "owner": "Rathnayake", "company": "All In one Holdings"}, {"name": "ranil sampath", "created": "2026-03-25", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "Decent Trust Holding"}, {"name": "Imasha Jayarathne", "created": "2026-03-23", "source": "Calendly", "status": "Contact in Future", "owner": "Rathnayake", "company": "Print USA Pvt Ltd"}, {"name": "Mohamed Sajath", "created": "2026-03-22", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "Kix Tech"}, {"name": "K. VIJAY", "created": "2026-03-21", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "hy"}, {"name": "Rushara Fernando", "created": "2026-03-21", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "Derek fernando associates"}, {"name": "Piyomani Nawarathne", "created": "2026-03-21", "source": "Social media - Inquiry", "status": "Contacted", "owner": "Rathnayake", "company": "Gold land plantation"}, {"name": "Sandeepa Malshan", "created": "2026-03-20", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "BeesPoint(Pvt)Ltd"}, {"name": "sures Jayalath", "created": "2026-03-19", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Bright Silver"}, {"name": "vinidu nirmitha", "created": "2026-03-18", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "Super Electronic & Air Technics Provate Limited"}, {"name": "Sumith Sanjaya", "created": "2026-03-18", "source": "Social media - Inquiry", "status": "Junk Lead", "owner": "Rathnayake", "company": "Government Radiological Technologists Association"}, {"name": "Mohommed Shafraz", "created": "2026-03-18", "source": "Social media - Inquiry", "status": "Junk Lead", "owner": "Rathnayake", "company": "Modern Bag Fashion"}, {"name": "chenura fernando", "created": "2026-03-18", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "QuidRobo"}, {"name": "Minoli Samasha", "created": "2026-03-18", "source": "Inbound - Website", "status": "Contact in Future", "owner": "Rathnayake", "company": "Cybridge Global LLC"}, {"name": "AF Global", "created": "2026-03-18", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "AF GLOBAL INDUSTRIES PVT LTD"}, {"name": "Chamodi Anjaana", "created": "2026-03-17", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "OFFICE NETWORK (PVT) LTD"}, {"name": "Hiru Withana", "created": "2026-03-16", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "circlebook"}, {"name": "Kasuri Rasangika", "created": "2026-03-16", "source": "Calendly", "status": "Junk Lead", "owner": "Rathnayake", "company": "Dadigama"}, {"name": "i Cube", "created": "2026-03-16", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "i-Cube International (Pvt) Ltd"}, {"name": "Tinithi Apparel", "created": "2026-03-16", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "Tinithi Apparel"}, {"name": "Lasantha Marasinghe", "created": "2026-03-16", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Econet engineering pvt ltd"}, {"name": "Fahd Cader", "created": "2026-03-16", "source": "Inbound - Website", "status": "Contact in Future", "owner": "Rathnayake", "company": "EL holdings out ltd"}, {"name": "Janaka Wijeyesinghe", "created": "2026-03-16", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "JAY.D Solutions"}, {"name": "Dinesha Atygalle", "created": "2026-03-15", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Table 11"}, {"name": "Nishmika Ekanayaka", "created": "2026-03-15", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Nextcloth"}, {"name": "Netanya Perera", "created": "2026-03-13", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Elvoir.lk"}, {"name": "Janiru Hettiarachchi", "created": "2026-03-12", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Dream Canvas"}, {"name": "Mahesh Madhushani", "created": "2026-03-12", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "PARAMOUNT SECURITY SERVICE"}, {"name": "Roshan Kumara", "created": "2026-03-12", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "MaxPlus Cosmetics (Pvt) Ltd"}, {"name": "Thimira Rometh", "created": "2026-03-11", "source": "Social media - Inquiry", "status": "Contacted", "owner": "Rathnayake", "company": "Rometh Holdings Pvt Ltd"}, {"name": "Mahesh Jayaweera", "created": "2026-03-11", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Transport Authority (W.P)"}, {"name": "Shani Prathibha", "created": "2026-03-11", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "Geodd Pvt Ltd"}, {"name": "Diveks Kumaravelu", "created": "2026-03-10", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Kelly Felder"}, {"name": "Prarthana Madhushani", "created": "2026-03-10", "source": "Inbound - Website", "status": "Attempted to Contact", "owner": "Rathnayake", "company": "Wimal Wood Panalling (Pvt) Ltd."}, {"name": "Aditha Karunaratne", "created": "2026-03-10", "source": "Inbound - Website", "status": "Contact in Future", "owner": "Rathnayake", "company": "SteelTek Detailing"}, {"name": "Navoda Devangi", "created": "2026-03-10", "source": "Inbound - Website", "status": "Contact in Future", "owner": "Rathnayake", "company": "Ceylon Plants"}, {"name": "chamil rasanjana", "created": "2026-03-10", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "E ACCOUNTING"}, {"name": "Kasun Poornaka", "created": "2026-03-10", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "MIA MIA CAFE"}, {"name": "Raveen Gunawardana", "created": "2026-03-09", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Parakum"}, {"name": "thulana naranapitiya", "created": "2026-03-09", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "midland"}, {"name": "Bhagya Salgado", "created": "2026-03-09", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Shanika Marine Company PVT Ltd"}, {"name": "Janaka Masakkara", "created": "2026-03-08", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "The Blues"}, {"name": "Amanda Sewwandi", "created": "2026-03-06", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Future Life Investment Ltd"}, {"name": "Nuwanthika Ilangasekara", "created": "2026-03-06", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "NSJ GLOBAL SOLUTIONS PVT LTD"}, {"name": "Sheron Weerasinghe", "created": "2026-03-06", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Axive Agency"}, {"name": "Krishantha Perera", "created": "2026-03-05", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "MACKSONS TILES LANKA (PVT) LTD"}, {"name": "chandana swarnathilaka", "created": "2026-03-05", "source": "Social media - Inquiry", "status": "Contact in Future", "owner": "Rathnayake", "company": "SLTB WELLAWAYA"}, {"name": "Minna Iqbal", "created": "2026-03-05", "source": "Inbound - Website", "status": "Contacted", "owner": "Rathnayake", "company": "tuktukrental.com"}, {"name": "green techsl", "created": "2026-03-04", "source": "Inbound - Website", "status": "Contact in Future", "owner": "Rathnayake", "company": "Green Tech of Ceylon"}, {"name": "Asela Asirimath Yapa", "created": "2026-03-04", "source": "Social media - Inquiry", "status": "Not Responding", "owner": "Rathnayake", "company": "Sumudu BPO Pvt Ltd"}, {"name": "Kennath Jethro", "created": "2026-03-02", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "i4tlabs"}, {"name": "IM Weeriyasinghe", "created": "2026-03-01", "source": "Inbound - Website", "status": "Contact in Future", "owner": "Rathnayake", "company": "Ceylon Capital Solutions (PVT) LTD"}, {"name": "Chandana Herath", "created": "2026-02-28", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Admoo One (Pvt) Ltd"}, {"name": "Hashini Withanachchi", "created": "2026-02-27", "source": "Social media - Inquiry", "status": "Contact in Future", "owner": "Rathnayake", "company": "Bing Chun"}, {"name": "Abdul Fazith", "created": "2026-02-27", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Hettiarachchi", "company": "Zerohost"}, {"name": "Fazith Abdul", "created": "2026-02-27", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "ZeroHost"}, {"name": "Udaya Kantha Jayawardana", "created": "2026-02-26", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Hettiarachchi", "company": "Smile Lanka Viajes"}, {"name": "Subramaniyam Surendiren", "created": "2026-02-26", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Shehara manpower"}, {"name": "Favour Link", "created": "2026-02-26", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Sugar Mummy connection"}, {"name": "Nadeema Dasuni", "created": "2026-02-26", "source": "Social media - Inquiry", "status": "Contacted", "owner": "Rathnayake", "company": "Bondtex International Pvt Ltd"}, {"name": "Vishwa Samaranayake", "created": "2026-02-26", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Asset Networks"}, {"name": "Sanjaya Subasinghe", "created": "2026-02-26", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "WGDE"}, {"name": "Shashikala Udayangani", "created": "2026-02-26", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Scope Engineering (Pvt) Ltd"}, {"name": "Mohamed M Arshad", "created": "2026-02-25", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "ASA"}, {"name": "Matheesha Jesson ganidu liyanage", "created": "2026-02-25", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Fix 360"}, {"name": "Iresh Chathuranga", "created": "2026-02-25", "source": "Inbound - Website", "status": "Contact in Future", "owner": "Rathnayake", "company": "BPO"}, {"name": "Sanka Maduranga", "created": "2026-02-25", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Unleash Creative Solutions"}, {"name": "Tharuka Sathsarani", "created": "2026-02-25", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Golden Harvest mills (pvt)ltd"}, {"name": "Malki Fernando", "created": "2026-02-25", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "T&G Lanka (Pvt) Ltd"}, {"name": "Saliya Kumara", "created": "2026-02-25", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "ROCKGOLD"}, {"name": "Kasun Kaluarachchi", "created": "2026-02-24", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Eduviz"}, {"name": "Nisadu Perera", "created": "2026-02-24", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Union motors"}, {"name": "Thushan karunarathne", "created": "2026-02-24", "source": "Social media - Inquiry", "status": "Not Responding", "owner": "Rathnayake", "company": "81 Guards (Pvt) ltd"}, {"name": "Dinushi .", "created": "2026-02-24", "source": "Social media - Inquiry", "status": "Junk Lead", "owner": "Rathnayake", "company": "Universal Lifeline Ceylon Pvt Ltd"}, {"name": "Udesh Amantha", "created": "2026-02-24", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Heaven Nature (Pvt) Ltd"}, {"name": "Deshan Dushantha", "created": "2026-02-24", "source": "Social media - Inquiry", "status": "Not Responding", "owner": "Rathnayake", "company": "Global Shield Security Service"}, {"name": "Pipuni Wijesooriya", "created": "2026-02-24", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Derana"}, {"name": "Dinusha Abeysinghe", "created": "2026-02-23", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "Withheld"}, {"name": "Sanjaya Perera", "created": "2026-02-23", "source": "Social media - Inquiry", "status": "Not Responding", "owner": "Rathnayake", "company": "Bio Substrates Pvt Ltd"}, {"name": "Kyle Barnes", "created": "2026-02-23", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Spotlight Over The City"}, {"name": "Nishadha Hettiarachchi", "created": "2026-02-22", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Tv derana"}, {"name": "Mohammed Akram", "created": "2026-02-22", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Lanka Hardware International PVT LTD"}, {"name": "Yasith Perera", "created": "2026-02-21", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "SkillSync"}, {"name": "Ishany Erandy Balder", "created": "2026-02-21", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "GB Collection"}, {"name": "mathew karunaratne", "created": "2026-02-20", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "CrunchTime"}, {"name": "Udyani Bowatte", "created": "2026-02-20", "source": "Social media - Inquiry", "status": "Not Responding", "owner": "Rathnayake", "company": "grindlays"}, {"name": "JPFruits Diluka", "created": "2026-02-20", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "jp fruits"}, {"name": "WBHO Construction Services WBHO", "created": "2026-02-20", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "WBHO Construction Services"}, {"name": "Supun madhusha", "created": "2026-02-19", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Happy egg Distributors"}, {"name": "Aruna Krishantha", "created": "2026-02-19", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Carzone"}, {"name": "L\u01b0\u01a1ng Thanh Ngh\u0129a", "created": "2026-02-18", "source": "Calendly", "status": "Junk Lead", "owner": "Wathukarage", "company": null}, {"name": "NIRAN JAN NISSANKA", "created": "2026-02-18", "source": "Inbound - Website", "status": "Not Responding", "owner": "Senanayake", "company": "DATA MANAGEMENT SYSTEMS (PVT) LTD - DIV.4"}, {"name": "Prabath Hewasundara", "created": "2026-02-18", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "CRESKIT LLC"}, {"name": "B Academy", "created": "2026-02-17", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "B Academy"}, {"name": "Fazla Faris", "created": "2026-02-17", "source": "Inbound - Website", "status": "Job credits", "owner": "Hettiarachchi", "company": "H Connect"}, {"name": "Arozen Human Resources", "created": "2026-02-17", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Arozen Pvt Ltd"}, {"name": "Dilnuwan Perera", "created": "2026-02-16", "source": "Social media - Inquiry", "status": "Contacted", "owner": "Rathnayake", "company": "Niira Hotel"}, {"name": "K. P. D. Madhuka", "created": "2026-02-15", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "Perpova Developers"}, {"name": "MJ Global Education & Visa Consultants", "created": "2026-02-14", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "MJ Global Education & Visa Consultants"}, {"name": "Dinusha K", "created": "2026-02-14", "source": "Calendly", "status": "Junk Lead", "owner": "Rathnayake", "company": "Augustory Crop"}, {"name": "James Mohlala", "created": "2026-02-14", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Sibanye still water"}, {"name": "Divya Thiyagaraja", "created": "2026-02-14", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Umbra Holdings"}, {"name": "Ranga De Silva", "created": "2026-02-13", "source": "Sales Contact", "status": "Contacted", "owner": "Rathnayake", "company": "Yara technologies"}, {"name": "Thilini Perera", "created": "2026-02-13", "source": "Sales Contact", "status": "Contacted", "owner": "Rathnayake", "company": "Geoffrey Bawa Trust"}, {"name": "Theruni Silva", "created": "2026-02-13", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "Aviha Group of Companies"}, {"name": "Gnanasunthar Sabitha", "created": "2026-02-13", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Janasakthi Life Insurance"}, {"name": "Anas Rafaideen", "created": "2026-02-13", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "TecRocket Space"}, {"name": "Dulaj Dilhan", "created": "2026-02-12", "source": "Calendly", "status": "Junk Lead", "owner": "Rathnayake", "company": null}, {"name": "Christopher-John Perrin", "created": "2026-02-12", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "The Precision Clinic International"}, {"name": "asith ishantha", "created": "2026-02-12", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "ALTURA X"}, {"name": "ravindu liyanage", "created": "2026-02-12", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Sky Gate International"}, {"name": "Bavaram Karunaaharan", "created": "2026-02-12", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Throoout"}, {"name": "Kavishi Godage", "created": "2026-02-11", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "KVC"}, {"name": "Senath Manikkarachchi", "created": "2026-02-11", "source": "Sales Contact", "status": "Junk Lead", "owner": "Rathnayake", "company": "Manix Solutions"}, {"name": "Amana Moulana", "created": "2026-02-11", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "Sparkles Preschool"}, {"name": "Koshala Mayan", "created": "2026-02-10", "source": "Sales Contact", "status": "Contact in Future", "owner": "Wathukarage", "company": "Mintpay"}, {"name": "Sandaru Fernando", "created": "2026-02-09", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Agro Ventures Digital (Pvt) Ltd"}, {"name": "Lakmali Wickremesooriya", "created": "2026-02-07", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Autodirect (Pvt) Limited"}, {"name": "Hansa Diaz Kaluarachchi", "created": "2026-02-07", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Hydra Dynamics"}, {"name": "mark zico", "created": "2026-02-07", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "GLOBAL PETROLEUM"}, {"name": "Erin Silva", "created": "2026-02-07", "source": "Inbound - Website", "status": "Contact in Future", "owner": "Rathnayake", "company": "Laundry Ceylon (Pvt) Ltd"}, {"name": "Program Collective", "created": "2026-02-06", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Program Collective"}, {"name": "Krystle Reid Wijesuriya", "created": "2026-02-06", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "GenUth Initiative"}, {"name": "irosh wijesiri", "created": "2026-02-06", "source": "Inbound - Website", "status": "Contact in Future", "owner": "Rathnayake", "company": "oraxs"}, {"name": "Dulinka Tindall", "created": "2026-02-05", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Wellness Produce"}, {"name": "Sam Silva", "created": "2026-02-05", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "DuSol Australia"}, {"name": "Hasitha De Silva", "created": "2026-02-05", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "KMV Media"}, {"name": "Praveen Rathnayake", "created": "2026-02-05", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Shell lubricants"}, {"name": "RIZNI ISMAIL", "created": "2026-02-03", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "SPEED INTERNATIONAL FREIGHT SYSTEMS PVT LTD"}, {"name": "Nish Perera", "created": "2026-02-03", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "Tekfort Recruitment"}, {"name": "omaya", "created": "2026-02-03", "source": "Calendly", "status": "Junk Lead", "owner": "Rathnayake", "company": null}, {"name": "punara ganehiarachchi", "created": "2026-02-03", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "spark global"}, {"name": "Minoli De silva", "created": "2026-02-02", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "LIRNEasia"}, {"name": "Dimuthu Prasanna", "created": "2026-02-02", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Monte'carlo Digital"}, {"name": "Kalhara Dasanayaka", "created": "2026-02-01", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Duovate International"}, {"name": "Calyon Shoes", "created": "2026-02-01", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "CALYON"}, {"name": "Muhammad Saajid", "created": "2026-01-31", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "LandMe"}, {"name": "Kanchana Dilshan", "created": "2026-01-30", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Abans"}, {"name": "Thimira Nimsara", "created": "2026-01-30", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "OwieGO Concepts"}, {"name": "hashan madurange", "created": "2026-01-30", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "TRP super"}, {"name": "muzni mohamed", "created": "2026-01-30", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Hettiarachchi", "company": "BR TRADING & CO"}, {"name": "Rami Rajkumar", "created": "2026-01-30", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "TechEdge Accounting"}, {"name": "Zumry Razick", "created": "2026-01-29", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Zee Enterprises pvt ltd"}, {"name": "Madhusanka Wijesinghe", "created": "2026-01-29", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "cafe360one"}, {"name": "Hussain Sameem", "created": "2026-01-29", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "WinCore Pvt Ltd"}, {"name": "Vijan Wijewardana", "created": "2026-01-29", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "WIjewardana Beyond Printing"}, {"name": "Kavindi Dulmika", "created": "2026-01-29", "source": "Social media - Inquiry", "status": "Junk Lead", "owner": "Rathnayake", "company": "Quick Pak Pvt Ltd"}, {"name": "Nuwan Perera", "created": "2026-01-29", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Perero Works International ( Pvt) Ltd"}, {"name": "dasun nawanjana", "created": "2026-01-29", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Ameri"}, {"name": "senula interior", "created": "2026-01-29", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Senula Interior And Exterior Solutions (pvt) ltd"}, {"name": "Lahiru Palliyaguru", "created": "2026-01-28", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "PIMC"}, {"name": "SHANTHINI MAHILRAJAN", "created": "2026-01-28", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Apptimus"}, {"name": "Ravichandran Vithuzan", "created": "2026-01-28", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "apptimus"}, {"name": "Seya Dilunika", "created": "2026-01-27", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "NextGen Holdings"}, {"name": "Anuruddhika Senarathna", "created": "2026-01-27", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Adikari Oil Mills Pvt Ltd"}, {"name": "Hasindu Goonathilaka", "created": "2026-01-26", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Palitha Goonathilaka Associates Pvt(Ltd)"}, {"name": "suneth sandaruwan", "created": "2026-01-26", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "sandaruwan"}, {"name": "test test", "created": "2026-01-26", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "test"}, {"name": "test test", "created": "2026-01-26", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "test"}, {"name": "Udara Weerasinghe", "created": "2026-01-26", "source": "Inbound - Website", "status": "Contact in Future", "owner": "Rathnayake", "company": "Roccos"}, {"name": "Ravindu Palihakkara", "created": "2026-01-26", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "Forma Studio"}, {"name": "Sujith Dodamgaslanda", "created": "2026-01-25", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Elite Alliance Pvt Ltd"}, {"name": "ayesh Jayawardena", "created": "2026-01-24", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "InkWave"}, {"name": "SAMPATH SENAWATTE", "created": "2026-01-24", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Jeewaka Herbal Products Private Limited"}, {"name": "Sheron Weerasinghe", "created": "2026-01-24", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Axive Agency"}, {"name": "Malshani Kapuge", "created": "2026-01-23", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "Kingsmere Academy"}, {"name": "Krishan Danushka", "created": "2026-01-23", "source": "Inbound - Website", "status": "Not Responding", "owner": "Rathnayake", "company": "kd mobiles"}, {"name": "Vidurangee Perera", "created": "2026-01-23", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "Crumble"}, {"name": "Fazla Hassan", "created": "2026-01-23", "source": "Inbound - Website", "status": "Junk Lead", "owner": "Rathnayake", "company": "LuxuryX (Pvt) Ltd"}, {"name": "Avishka Abeyrathna", "created": "2026-01-23", "source": "Inbound - Website", "status": "Job credits", "owner": "Rathnayake", "company": "SA Leisure"}];
+
+    const { useState, useMemo } = React;
+    const {
+      AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+      XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+      LineChart, Line
+    } = Recharts;
+
+    // Utility functions
+    const parseDate = (dateStr) => new Date(dateStr);
+    const formatCurrency = (num) => `$${(num / 1000).toFixed(1)}K`;
+    const formatCurrencyFull = (num) => `$${num.toLocaleString()}`;
+
+    // Filter records by date range
+    const filterByDateRange = (records, fromDate, toDate, dateField = 'created') => {
+      return records.filter(r => {
+        const d = parseDate(r[dateField]);
+        return d >= fromDate && d <= toDate;
+      });
+    };
+
+    // Chart components
+    const CustomTooltip = ({ active, payload, label }) => {
+      if (!active || !payload) return null;
+      return (
+        <div style={{
+          background: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '8px',
+          padding: '8px 12px',
+          fontSize: '12px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}>
+          {payload.map((entry, idx) => (
+            <div key={idx} style={{ color: entry.color || '#6366f1' }}>
+              {entry.name}: {typeof entry.value === 'number' && entry.value > 100 ? formatCurrency(entry.value) : entry.value}
+            </div>
+          ))}
+        </div>
+      );
+    };
+
+    // Main Dashboard Component
+    function Dashboard() {
+      const [activeTab, setActiveTab] = useState('overview');
+      const [datePreset, setDatePreset] = useState('all');
+      const [customFrom, setCustomFrom] = useState('');
+      const [customTo, setCustomTo] = useState('');
+
+      const dateRanges = {
+        '7days': () => {
+          const to = new Date('2026-04-07');
+          const from = new Date(to);
+          from.setDate(from.getDate() - 7);
+          return [from, to];
+        },
+        '30days': () => {
+          const to = new Date('2026-04-07');
+          const from = new Date(to);
+          from.setDate(from.getDate() - 30);
+          return [from, to];
+        },
+        'thisMonth': () => {
+          const to = new Date('2026-04-07');
+          const from = new Date(to.getFullYear(), to.getMonth(), 1);
+          return [from, to];
+        },
+        'lastMonth': () => {
+          const to = new Date('2026-04-07');
+          const from = new Date(to.getFullYear(), to.getMonth() - 1, 1);
+          const end = new Date(to.getFullYear(), to.getMonth(), 0);
+          return [from, end];
+        },
+        'quarter': () => {
+          const to = new Date('2026-04-07');
+          const from = new Date(to.getFullYear(), Math.floor(to.getMonth() / 3) * 3, 1);
+          return [from, to];
+        },
+        'all': () => [new Date('2025-12-01'), new Date('2026-04-07')]
+      };
+
+      const getDateRange = () => {
+        if (customFrom && customTo) {
+          return [new Date(customFrom), new Date(customTo)];
+        }
+        return dateRanges[datePreset]();
+      };
+
+      const [fromDate, toDate] = getDateRange();
+
+      // Filtered data
+      const filteredDeals = useMemo(() => filterByDateRange(dealsData, fromDate, toDate), [fromDate, toDate]);
+      const filteredContacts = useMemo(() => filterByDateRange(contactsData, fromDate, toDate), [fromDate, toDate]);
+      const filteredAccounts = useMemo(() => filterByDateRange(accountsData, fromDate, toDate), [fromDate, toDate]);
+      const filteredLeads = useMemo(() => filterByDateRange(leadsData, fromDate, toDate), [fromDate, toDate]);
+
+      // KPI calculations
+      const kpis = useMemo(() => {
+        const totalDeals = filteredDeals.length;
+        const pipelineValue = filteredDeals.reduce((sum, d) => sum + (d.amount || 0), 0);
+        const wonDeals = filteredDeals.filter(d => d.stage === 'Closed Won').length;
+        const winRate = totalDeals > 0 ? Math.round((wonDeals / totalDeals) * 100) : 0;
+        const onboarding = filteredDeals.filter(d => d.stage === 'Onboarding').length;
+        
+        return { totalDeals, pipelineValue, winRate, onboarding };
+      }, [filteredDeals]);
+
+      // Monthly trend data
+      const monthlyTrend = useMemo(() => {
+        const monthMap = {};
+        filteredDeals.forEach(deal => {
+          const date = new Date(deal.created);
+          const key = date.toISOString().slice(0, 7); // YYYY-MM
+          if (!monthMap[key]) monthMap[key] = { month: key, revenue: 0, count: 0 };
+          monthMap[key].revenue += deal.amount || 0;
+          monthMap[key].count += 1;
+        });
+        return Object.values(monthMap).sort((a, b) => a.month.localeCompare(b.month));
+      }, [filteredDeals]);
+
+      // Lead sources
+      const leadSources = useMemo(() => {
+        const sourceMap = {};
+        filteredLeads.forEach(lead => {
+          const src = lead.source || 'Unknown';
+          sourceMap[src] = (sourceMap[src] || 0) + 1;
+        });
+        return Object.entries(sourceMap).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8);
+      }, [filteredLeads]);
+
+      // Revenue by rep
+      const revenueByRep = useMemo(() => {
+        const repMap = {};
+        filteredDeals.forEach(deal => {
+          const rep = deal.owner || 'Unknown';
+          if (!repMap[rep]) repMap[rep] = { name: rep, revenue: 0, count: 0 };
+          repMap[rep].revenue += deal.amount || 0;
+          repMap[rep].count += 1;
+        });
+        return Object.values(repMap).sort((a, b) => b.revenue - a.revenue);
+      }, [filteredDeals]);
+
+      // Industries
+      const industries = useMemo(() => {
+        const indMap = {};
+        filteredAccounts.forEach(acc => {
+          const ind = acc.industry || 'Unknown';
+          indMap[ind] = (indMap[ind] || 0) + 1;
+        });
+        return Object.entries(indMap).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8);
+      }, [filteredAccounts]);
+
+      // Pipeline by stage
+      const pipelineByStage = useMemo(() => {
+        const stageMap = {};
+        filteredDeals.forEach(deal => {
+          const stage = deal.stage || 'Unknown';
+          if (!stageMap[stage]) stageMap[stage] = { name: stage, count: 0, amount: 0 };
+          stageMap[stage].count += 1;
+          stageMap[stage].amount += deal.amount || 0;
+        });
+        return Object.values(stageMap).sort((a, b) => b.amount - a.amount);
+      }, [filteredDeals]);
+
+      // Lead statuses
+      const leadStatuses = useMemo(() => {
+        const statusMap = {};
+        filteredLeads.forEach(lead => {
+          const status = lead.status || 'Unknown';
+          statusMap[status] = (statusMap[status] || 0) + 1;
+        });
+        return Object.entries(statusMap).map(([name, value]) => ({ name, value }));
+      }, [filteredLeads]);
+
+      // Onboarding trend
+      const onboardingTrend = useMemo(() => {
+        const monthMap = {};
+        filteredAccounts.forEach(acc => {
+          const date = new Date(acc.created);
+          const key = date.toISOString().slice(0, 7);
+          if (!monthMap[key]) monthMap[key] = { month: key, accounts: 0, contacts: 0 };
+          monthMap[key].accounts += 1;
+        });
+        filteredContacts.forEach(contact => {
+          const date = new Date(contact.created);
+          const key = date.toISOString().slice(0, 7);
+          if (!monthMap[key]) monthMap[key] = { month: key, accounts: 0, contacts: 0 };
+          monthMap[key].contacts += 1;
+        });
+        return Object.values(monthMap).sort((a, b) => a.month.localeCompare(b.month));
+      }, [filteredAccounts, filteredContacts]);
+
+      // Industry distribution for onboarding
+      const industryDistribution = useMemo(() => {
+        const indMap = {};
+        filteredAccounts.forEach(acc => {
+          const ind = acc.industry || 'Unknown';
+          indMap[ind] = (indMap[ind] || 0) + 1;
+        });
+        const total = filteredAccounts.length;
+        return Object.entries(indMap)
+          .map(([name, count]) => ({ name, count, percentage: total > 0 ? Math.round((count / total) * 100) : 0 }))
+          .sort((a, b) => b.count - a.count);
+      }, [filteredAccounts]);
+
+      const COLORS = ['#6366f1', '#06b6d4', '#ec4899', '#f59e0b', '#10b981', '#8b5cf6', '#f43f5e', '#14b8a6'];
+
+      return (
+        <div className="container">
+          {/* Header */}
+          <div className="header">
+            <div className="header-title">
+              <span>🐓</span>
+              <span>Rooster Dashboard</span>
+            </div>
+            <div className="header-subtitle">Sales & Customer Onboarding · Powered by Zoho CRM</div>
+          </div>
+
+          {/* Date Range Selector */}
+          <div className="date-range-container">
+            <div className="date-controls">
+              {['7days', '30days', 'thisMonth', 'lastMonth', 'quarter', 'all'].map(preset => (
+                <button
+                  key={preset}
+                  className={`preset-button ${datePreset === preset && !customFrom ? 'active' : ''}`}
+                  onClick={() => { setDatePreset(preset); setCustomFrom(''); setCustomTo(''); }}
+                >
+                  {preset === '7days' ? 'Last 7 Days' : preset === '30days' ? 'Last 30 Days' : preset === 'thisMonth' ? 'This Month' : preset === 'lastMonth' ? 'Last Month' : preset === 'quarter' ? 'This Quarter' : 'All Time'}
+                </button>
+              ))}
+              <div className="date-input-group">
+                <input
+                  type="date"
+                  value={customFrom}
+                  onChange={(e) => { setCustomFrom(e.target.value); setDatePreset(''); }}
+                  placeholder="From"
+                />
+                <span style={{ color: '#94a3b8' }}>to</span>
+                <input
+                  type="date"
+                  value={customTo}
+                  onChange={(e) => { setCustomTo(e.target.value); setDatePreset(''); }}
+                  placeholder="To"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* KPI Cards */}
+          <div className="kpi-grid">
+            <div className="kpi-card">
+              <div className="kpi-label">Total Deals</div>
+              <div className="kpi-value">{kpis.totalDeals}</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-label">Pipeline Value</div>
+              <div className="kpi-value">{formatCurrency(kpis.pipelineValue)}</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-label">Win Rate</div>
+              <div className="kpi-value">{kpis.winRate}%</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-label">Currently Onboarding</div>
+              <div className="kpi-value">{kpis.onboarding}</div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="tabs">
+            <button
+              className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              Overview
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'sales' ? 'active' : ''}`}
+              onClick={() => setActiveTab('sales')}
+            >
+              Sales Pipeline
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'onboarding' ? 'active' : ''}`}
+              onClick={() => setActiveTab('onboarding')}
+            >
+              Onboarding
+            </button>
+          </div>
+
+          {/* Overview Tab */}
+          <div className={`tab-content ${activeTab === 'overview' ? 'active' : ''}`}>
+            <div className="chart-grid">
+              <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
+                <div className="chart-title">Monthly Deal Trend</div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={monthlyTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="month" stroke="#64748b" style={{ fontSize: '12px' }} />
+                    <YAxis yAxisId="left" stroke="#64748b" style={{ fontSize: '12px' }} />
+                    <YAxis yAxisId="right" orientation="right" stroke="#06b6d4" style={{ fontSize: '12px' }} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area yAxisId="left" type="monotone" dataKey="revenue" fill="#6366f1" stroke="#6366f1" fillOpacity={0.6} name="Revenue" />
+                    <Line yAxisId="right" type="monotone" dataKey="count" stroke="#06b6d4" strokeWidth={2} name="Deal Count" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="chart-container">
+                <div className="chart-title">Lead Sources</div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={leadSources}
+                      innerRadius={65}
+                      outerRadius={110}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {leadSources.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="chart-container">
+                <div className="chart-title">Revenue by Rep</div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={revenueByRep}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, left: 150, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis type="number" stroke="#64748b" style={{ fontSize: '12px' }} />
+                    <YAxis dataKey="name" type="category" width={140} stroke="#64748b" style={{ fontSize: '12px' }} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="revenue" fill="#6366f1" radius={8} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="chart-container">
+                <div className="chart-title">Customer Industries</div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={industries} margin={{ bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis
+                      dataKey="name"
+                      stroke="#64748b"
+                      style={{ fontSize: '12px' }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                    />
+                    <YAxis stroke="#64748b" style={{ fontSize: '12px' }} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="value" fill="#06b6d4" radius={8} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          {/* Sales Pipeline Tab */}
+          <div className={`tab-content ${activeTab === 'sales' ? 'active' : ''}`}>
+            <div className="chart-grid">
+              <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
+                <div className="chart-title">Pipeline Funnel by Stage</div>
+                <div className="funnel-container">
+                  {pipelineByStage.map((stage, idx) => {
+                    const maxCount = Math.max(...pipelineByStage.map(s => s.count));
+                    const widthPercent = (stage.count / maxCount) * 100;
+                    return (
+                      <div key={idx} className="funnel-bar">
+                        <div className="funnel-label">{stage.name}</div>
+                        <div className="funnel-bar-bg" style={{ width: `${widthPercent}%` }}>
+                          {stage.count} deals • {formatCurrency(stage.amount)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
+                <div className="chart-title">Revenue by Stage</div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={pipelineByStage}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis
+                      dataKey="name"
+                      stroke="#64748b"
+                      style={{ fontSize: '12px' }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                    />
+                    <YAxis stroke="#64748b" style={{ fontSize: '12px' }} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="amount" fill="#6366f1" radius={8}>
+                      {pipelineByStage.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
+                <div className="chart-title">Sales Rep Cards</div>
+                <div className="rep-grid">
+                  {revenueByRep.map((rep, idx) => (
+                    <div key={idx} className="rep-card">
+                      <div className="rep-avatar">{rep.name.charAt(0)}</div>
+                      <div className="rep-name">{rep.name}</div>
+                      <div className="rep-stat">Deals</div>
+                      <div className="rep-stat-value">{rep.count}</div>
+                      <div className="rep-stat" style={{ marginTop: '8px' }}>Revenue</div>
+                      <div className="rep-stat-value">{formatCurrency(rep.revenue)}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Onboarding Tab */}
+          <div className={`tab-content ${activeTab === 'onboarding' ? 'active' : ''}`}>
+            <div className="chart-grid">
+              <div className="chart-container" style={{ gridColumn: '1 / -1' }}>
+                <div className="chart-title">Customer Onboarding Trend</div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={onboardingTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="month" stroke="#64748b" style={{ fontSize: '12px' }} />
+                    <YAxis stroke="#64748b" style={{ fontSize: '12px' }} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                    <Bar dataKey="accounts" fill="#6366f1" radius={8} name="New Accounts" />
+                    <Bar dataKey="contacts" fill="#06b6d4" radius={8} name="New Contacts" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="chart-container">
+                <div className="chart-title">Lead Status Breakdown</div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={leadStatuses}
+                      innerRadius={65}
+                      outerRadius={110}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {leadStatuses.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="onboarding-cards">
+              <div className="onboarding-card">
+                <div className="onboarding-card-label">Currently Onboarding</div>
+                <div className="onboarding-card-value">{kpis.onboarding}</div>
+              </div>
+              <div className="onboarding-card">
+                <div className="onboarding-card-label">Onboarding Revenue</div>
+                <div className="onboarding-card-value">
+                  {formatCurrency(
+                    filteredDeals
+                      .filter(d => d.stage === 'Onboarding')
+                      .reduce((sum, d) => sum + (d.amount || 0), 0)
+                  )}
+                </div>
+              </div>
+              <div className="onboarding-card">
+                <div className="onboarding-card-label">Avg Onboarding Value</div>
+                <div className="onboarding-card-value">
+                  {formatCurrency(
+                    kpis.onboarding > 0
+                      ? filteredDeals
+                          .filter(d => d.stage === 'Onboarding')
+                          .reduce((sum, d) => sum + (d.amount || 0), 0) / kpis.onboarding
+                      : 0
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="table-container">
+              <div className="chart-title">Industry Distribution</div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Industry</th>
+                    <th>Accounts</th>
+                    <th>Percentage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {industryDistribution.map((row, idx) => (
+                    <tr key={idx}>
+                      <td>{row.name}</td>
+                      <td>{row.count}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div className="progress-bar" style={{ width: '100px' }}>
+                            <div className="progress-fill" style={{ width: `${row.percentage}%` }}></div>
+                          </div>
+                          {row.percentage}%
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="footer">
+            Data last updated: Apr 7, 2026 · Rooster Dashboard v1.0
+          </div>
+        </div>
+      );
+    }
+
+    // Render app
+    ReactDOM.createRoot(document.getElementById('root')).render(<Dashboard />);
+  </script>
+</body>
+</html>
