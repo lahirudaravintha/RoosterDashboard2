@@ -8,7 +8,7 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+  <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
   <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -306,6 +306,60 @@
       padding-top: 20px;
       border-top: 1px solid #e2e8f0;
     }
+
+    .daily-report-section {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .daily-report-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #6366f1;
+    }
+    .daily-report-metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 14px;
+    }
+    .daily-report-metric:last-child {
+      border-bottom: none;
+    }
+    .daily-report-label {
+      color: #64748b;
+      font-weight: 500;
+    }
+    .daily-report-value {
+      color: #1e293b;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .daily-report-total {
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      border-radius: 12px;
+      padding: 24px;
+      color: #fff;
+      text-align: center;
+      margin-top: 24px;
+    }
+    .daily-report-total-label {
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+    .daily-report-total-value {
+      font-size: 36px;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
@@ -326,7 +380,11 @@
     } = Recharts;
 
     // Utility functions
-    const parseDate = (dateStr) => new Date(dateStr);
+    const parseDate = (dateStr) => {
+      if (!dateStr) return null;
+      const d = new Date(dateStr);
+      return isNaN(d.getTime()) ? null : d;
+    };
     const formatCurrency = (num) => `$${(num / 1000).toFixed(1)}K`;
     const formatCurrencyFull = (num) => `$${num.toLocaleString()}`;
 
@@ -334,6 +392,7 @@
     const filterByDateRange = (records, fromDate, toDate, dateField = 'created') => {
       return records.filter(r => {
         const d = parseDate(r[dateField]);
+        if (!d) return false;
         return d >= fromDate && d <= toDate;
       });
     };
@@ -605,6 +664,12 @@
             >
               Onboarding
             </button>
+            <button
+              className={`tab-button ${activeTab === 'daily' ? 'active' : ''}`}
+              onClick={() => setActiveTab('daily')}
+            >
+              Daily Report
+            </button>
           </div>
 
           {/* Overview Tab */}
@@ -842,6 +907,113 @@
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Daily Report Tab */}
+          <div className={`tab-content ${activeTab === 'daily' ? 'active' : ''}`}>
+            {(() => {
+              const closedInRange = filterByDateRange(dealsData, fromDate, toDate, 'close')
+                .filter(d => (d.stage === 'Closed Won' || d.stage === 'Onboarding'));
+              const closedRevenue = closedInRange.reduce((sum, d) => sum + (d.amount || 0), 0);
+              return (
+            <div className="daily-report-section">
+              <div className="daily-report-title">Topline</div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">Accounts closed</span>
+                <span className="daily-report-value">{closedInRange.length}</span>
+              </div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">New MRR added</span>
+                <span className="daily-report-value">{formatCurrencyFull(closedRevenue)}</span>
+              </div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">New revenue added</span>
+                <span className="daily-report-value">{formatCurrencyFull(closedRevenue)}</span>
+              </div>
+            </div>
+              );
+            })()}
+
+            <div className="daily-report-section">
+              <div className="daily-report-title">Pipeline Movement</div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">Demos set</span>
+                <span className="daily-report-value">
+                  {filteredDeals.length}
+                </span>
+              </div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">Demos completed</span>
+                <span className="daily-report-value">
+                  {filterByDateRange(dealsData, fromDate, toDate, 'created').filter(d => d.stage === 'Demo Done').length}
+                </span>
+              </div>
+            </div>
+
+            <div className="daily-report-section">
+              <div className="daily-report-title">SDR Activity</div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">WhatsApp inquiries</span>
+                <span className="daily-report-value">
+                  {filteredLeads.filter(l => l.source === 'Social media - Inquiry').length}
+                </span>
+              </div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">WhatsApp Junk</span>
+                <span className="daily-report-value">
+                  {filteredLeads.filter(l => l.source === 'Social media - Inquiry' && l.status === 'Junk Lead').length}
+                </span>
+              </div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">Total reached out (WhatsApp)</span>
+                <span className="daily-report-value">
+                  {filteredLeads.filter(l => l.source === 'Social media - Inquiry' && (l.status === 'Attempted to Contact' || l.status === 'Contacted' || l.status === 'Not Responding')).length}
+                </span>
+              </div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">Number of Conversations (WhatsApp)</span>
+                <span className="daily-report-value">
+                  {filteredLeads.filter(l => l.source === 'Social media - Inquiry' && l.status === 'Contacted').length}
+                </span>
+              </div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">Low Potential</span>
+                <span className="daily-report-value">
+                  {filteredLeads.filter(l => l.status === 'Not Qualified' || l.status === 'Junk Lead').length}
+                </span>
+              </div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">CRM inquiries</span>
+                <span className="daily-report-value">
+                  {filteredLeads.filter(l => l.source === 'Inbound - Website').length}
+                </span>
+              </div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">Total Reached out (CRM)</span>
+                <span className="daily-report-value">
+                  {filteredLeads.filter(l => l.source === 'Inbound - Website' && (l.status === 'Attempted to Contact' || l.status === 'Contacted' || l.status === 'Not Responding')).length}
+                </span>
+              </div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">Outbound reached</span>
+                <span className="daily-report-value">
+                  {filteredLeads.filter(l => (l.source === 'Outbound - Retail list USA' || l.source === 'Referral Campaign - USA List') && (l.status === 'Attempted to Contact' || l.status === 'Contacted')).length}
+                </span>
+              </div>
+              <div className="daily-report-metric">
+                <span className="daily-report-label">Number of Conversations</span>
+                <span className="daily-report-value">
+                  {filteredLeads.filter(l => l.status === 'Contacted').length}
+                </span>
+              </div>
+            </div>
+
+            <div className="daily-report-total">
+              <div className="daily-report-total-label">Total Revenue for the period</div>
+              <div className="daily-report-total-value">
+                {formatCurrencyFull(filterByDateRange(dealsData, fromDate, toDate, 'close').filter(d => (d.stage === 'Closed Won' || d.stage === 'Onboarding')).reduce((sum, d) => sum + (d.amount || 0), 0))}
+              </div>
             </div>
           </div>
 
